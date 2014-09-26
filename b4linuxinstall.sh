@@ -9,14 +9,14 @@
 # ######################################################################
 # repository:		https://github.com/joseluis/B4LinuxInstall
 # forum thread:		http://basic4ppc.com/android/forum/threads/b4linuxinstall-script-to-use-b4-tools-in-linux.45092/
-# B4A:				http://basic4ppc.com/android/b4j.html
-# B4J:				http://basic4ppc.com/android/downloads.html
+# B4A:			http://basic4ppc.com/android/b4j.html
+# B4J:			http://basic4ppc.com/android/downloads.html
 #
 #
 # IMPORTANT INSTRUCTIONS
 # ######################################################################
 # - You can replace the contents of the variable b4aURL with the URL of
-#		the full version to B4A, sent by email to you after you buy it.
+#	the full version to B4A, sent by email to you after you buy it.
 #
 #
 # LICENSE
@@ -56,9 +56,9 @@
 # THANKS TO
 # ######################################################################
 # - Zolive33 (Oliver MARÉ) for creating the script B4A_Installer_en,
-#		from which B4LinuxInstall is built upon and tries to improve.
+#	from which B4LinuxInstall is built upon and tries to improve.
 # - Anywhere Software (Erel Uziel) for creating the fantastic suite of
-#		Rapid Application Development tools B4J, B4A and B4I.
+#	Rapid Application Development tools B4J, B4A and B4I.
 #
 
 
@@ -69,8 +69,8 @@
 wksB4=${HOME}/workspace_b4
 
 # B4A download link
-# If you bought B4A you can change the link to the full version here:	<<<<
-b4aURL=http://www.basic4ppc.com/android/files/b4a-trial.exe
+# If you bought B4A you can change the link to the full version here:
+b4aURL=http://www.basic4ppc.com/android/files/b4a-trial.exe # demo version
 b4aFile=${b4aURL##*/}
 
 # B4J download link
