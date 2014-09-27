@@ -89,8 +89,8 @@ PackAdaptAndroidSdk=${UrlPackAndroidSdk##*/}
 # JavaFX Scene Builder for Linux
 UrlPackJavaFxSB32=http://download.oracle.com/otn-pub/java/javafx_scenebuilder/2.0-b20/javafx_scenebuilder-2_0-linux-i586.deb
 UrlPackJavaFxSB64=http://download.oracle.com/otn-pub/java/javafx_scenebuilder/2.0-b20/javafx_scenebuilder-2_0-linux-x64.deb
-PackJavaFxSB32=${UrlPackAndroidSdk32##*/}
-PackJavaFxSB64=${UrlPackAndroidSdk64##*/}
+PackJavaFxSB32=${UrlPackJavaFxSB32##*/}
+PackJavaFxSB64=${UrlPackJavaFxSB64##*/}
 
 # JDK for Windows
 UrlJdkWindows=http://download.oracle.com/otn-pub/java/jdk/7u67-b01/jdk-7u67-windows-i586.exe # version 1.7
@@ -103,22 +103,27 @@ WinePkg="wine1.6" # stable version, preferred
 #WinePkg="wine1.7" # beta version, not needed
 
 
+# GLOBAL SYSTEM VARIABLES
+# ######################################################################
+
+[ $(uname -m) == "x86_64" ] && SObits="64" || SObits="32"
+
+
 # UTILITY FUNCTIONS
 # ######################################################################
-machineInfo=$(uname -m)
 
 # Checks if a command is available
 # Params: $1=name
 bin_exists() {
-	command -v foo >/dev/null 2>&1
+	command -v ${1} >/dev/null 2>&1
 }
 
 # Checks if a package is installed
 # Params: $1=Name
-is_installed() {
+package_exists() {
 	
 	# <DPKG>
-	res=$( dpkg-query -l "${1}" | tail -1 | awk '{ print $1 }' )
+	res=$( dpkg-query -l 2>/dev/null "${1}" | tail -1 | awk '{ print $1 }' )
 	[ "${res}" == "ii" ]
 }
 
@@ -183,40 +188,31 @@ fi
 mkdir ${TmpDir}
 
 
-
 # ORACLE JAVA INSTALLATION (LINUX)
 # ######################################################################
 
-echo -e "\nInstalling Java 1.8 for Linux. . ."
-echo "----------------------------------"
+echo -e "\nInstalling Java for Linux. . ."
+echo "------------------------------"
 
-# <UBUNTU> <ORACLE>
+# <ORACLE>
 
-# Check for installed package, offer to install it
-if ! is_installed oracle-java8-installer; then
-	echo "Package oracle-java8-installer NOT found"
-	
-else
-	echo "Package oracle-java8-installer found"
-	
+# Checks java version
+if bin_exists java; then
+	javaFullVersion=$(java -version 2>&1 | head -1 | awk -F '"' '/version/ {print $2}' )
+	javaBigVersion=$(echo ${javaFullVersion} | cut -d'.' -f1-2 )
+
+	echo "java -version = $javaFullVersion"
 fi
 
-
-# Test java version
-javaFullVersion=$(java -version 2>&1 | head -1 | awk -F '"' '/version/ {print $2}' )
-javaBigVersion=$(echo ${javaFullVersion} | cut -d'.' -f1-2 )
-
-echo "Default java -version = $javaFullVersion"
-
-if [ "$javaBigVersion" = "1.8" ] ; then
-	echo "You seem to have java 1.8 already installed."	
-	
+# Installs java
+# TODO
+if [ "${javaBigVersion}" == "1.8" ] || [ "${javaBigVersion}" == "1.7" ]; then
+	echo "You seem to have java ${javaBigVersion} already installed. That's enough."
 else	
-
-	# Java Installation through apt-get
 	read -p "You need Oracle Java 1.8. Do you want to install Java now? (y/n) " yn
 	if [ "$yn" = "y" ]; then
 		
+		# <UBUNTU>
 		echo "We are going to execute these commands:"
 		echo "    sudo add-apt-repository ppa:webupd8team/java"
 		echo "    sudo apt-get update"
@@ -231,9 +227,7 @@ else
 			sudo update-java-alternatives -s java-8-oracle
 		fi
 	fi
-
 fi
-
 
 
 # JAVA FX SCENE BUILDER INSTALLATION (LINUX)
@@ -241,22 +235,32 @@ fi
 
 # <ORACLE>
 
-echo -e "\nInstalling Java FX Scenebuilder 2.0 for Linux. . ."
-echo "-----------------------------------------------"
+echo -e "\nInstalling Java FX Scenebuilder for Linux. . ."
+echo "----------------------------------------------"
 
-if ! is_installed scenebuilder; then # TODO: make a deeper check
+if ! package_exists scenebuilder; then # TODO: make a deeper check
 
-	echo "You don't seem to have it installed. It is required to use B4J"
-	echo "For now, you'll have to install it manually from here:"
-	echo "http://www.oracle.com/technetwork/java/javase/downloads/sb2download-2177776.html"
-	
-	read -p "press a key to continue"
-	
-	
-	if [ "${machineInfo:(-2)}"=="64" ]; then
-		echo $UrlPackJavaFxSB64
-	else
-		echo "32"
+# Package to download, depending on architecture and package manager
+		
+	read -p "You need Oracle Java FX Scenebuilder. Do you want to install it now? (y/n) " yn
+
+	if [ "$yn" = "y" ]; then
+
+			
+		echo "We are going to download the package and execute these commands:"
+		
+		# <DPKG>
+		UrlPackJavaFxSB="UrlPackJavaFxSB${SObits}"
+		UrlPackJavaFxSB=${!UrlPackJavaFxSB}
+		PackJavaFxSB="PackJavaFxSB${SObits}"
+		PackJavaFxSB=${!PackJavaFxSB}	
+		echo "    sudo dpkg -I ${PackJavaFxSB}"
+		
+		read -p "Continue? (y/n)"
+		if [ "$yn" = "y" ]; then
+			oracle_download ${UrlPackJavaFxSB}
+			sudo dpkg -i ${TmpDir}/${PackJavaFxSB} # TODO: create function package_install
+		fi
 	fi
 	
 else
@@ -264,9 +268,12 @@ else
 fi
 
 
-
 # ANDROID SDK INSTALLATION (LINUX)
 # ######################################################################
+
+# The only components that needs to be installed are:
+# Inside Tools: SDK Platform-tools + Build-tools (both selected by default)
+# Inside the last stable API: SDK Platform + one System Image (e.g. x86 Atom)
 
 echo -e "\nInstalling Android SDK for Linux. . ."
 echo "-------------------------------------"
@@ -299,7 +306,6 @@ else
 fi
 
 
-
 # WINE INSTALLATION (LINUX)
 # ######################################################################
 
@@ -308,7 +314,7 @@ echo "---------------------------------------"
 
 # <UBUNTU>
 
-if ! is_installed ${WinePkg} || ! is_installed winetricks; then
+if ! package_exists ${WinePkg} || ! package_exists winetricks; then
 	echo "Wine and/or winetricks do not seem to be installed on your system."
 	read -p "Do you want to install it? (y/n) " yn
 	if [ "$yn" = "y" ]; then
@@ -322,25 +328,26 @@ fi
 
 # Environment preparation for Wine (32 bits)
 if ! [ -d "${WineB4}" ]; then
-	echo "Initializing Wine's environment"
+	# TODO: It needs to pause here
+	echo "Initializing Wine's environment. . ."
 	WINEARCH=win32 WINEPREFIX=${WineB4} wine do_not_exists 2>/dev/null
 	WINEARCH=win32 WINEPREFIX=${WineB4} winetricks dotnet20
 else
 	echo "Environment for Wine 32 bits width dotnet20 is already installed"
-
 fi
 
 
-
-# JAVA JDK INSTALLATION (WINE)
+# ORACLE JAVA JDK INSTALLATION (WINE)
 # ######################################################################
+
+# The only component that needs to be installed is the Development Tools
+# Don't install the Source Code nor the Public JRE
 
 echo -e "\nInstalling Java 1.7 for Windows 32bit. . ."
 echo "------------------------------------------"
 # NOTE: Java 1.8 gives error in installation
 #
 # <ORACLE>
-
 
 if ! [ -d "${WineB4}/drive_c/Program Files/Java/" ]; then
 	read -p "Do you want to install JDK for windows? (y/n) " yn
@@ -353,9 +360,10 @@ else
 fi
 
 
-
 # B4A INSTALLATION (WINE)
 # ######################################################################
+
+# TODO: Test if it's ok launching it after installation
 
 echo -e "\nInstalling B4A for Windows 32bit. . ."
 echo "---------------------------------------"
@@ -389,12 +397,13 @@ fi
 	fi
 
 
-
 # B4J INSTALLATION (WINE)
 # ######################################################################
 
 echo -e "\nInstalling B4J for Windows 32bit. . ."
 echo "---------------------------------------"
+
+# TODO: Test if it's ok launching it after installation
 
 if [ -f "${WineB4}/drive_c/Program Files/Anywhere Software/B4J/B4J.exe" ]; then
 	echo "B4J is already installed   -"
@@ -424,9 +433,10 @@ fi
 	fi
 
 
-
 # CLEANUP & EXIT
 # ######################################################################
+
+# TODO: Make this an option in the menu. Show size.
 
 echo -e "\nCleanup & exit"
 echo "---------------------------------------"
@@ -439,6 +449,4 @@ fi
 
 
 echo "Bye!"
-
-
 
