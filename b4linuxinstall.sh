@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# B4LinuxInstall (version 20140926) by joseLuís
+# B4LinuxInstall (version 20140927) by joseLuís
 # ----------------------------------------------------------------------
 # A bash script for installing B4* RAD tools in Linux systems
 #
@@ -8,7 +8,7 @@
 # LINKS
 # ######################################################################
 # repository:		https://github.com/joseluis/B4LinuxInstall
-# forum thread:		http://basic4ppc.com/android/forum/threads/b4linuxinstall-script-to-use-b4-tools-in-linux.45092/
+# forum thread:		http://basic4ppc.com/android/forum/threads/45092/
 # B4A:			http://basic4ppc.com/android/b4j.html
 # B4J:			http://basic4ppc.com/android/downloads.html
 #
@@ -105,19 +105,38 @@ WinePkg="wine1.6" # stable version, preferred
 
 # UTILITY FUNCTIONS
 # ######################################################################
-True=0
-False=1
-varSysInfo=$(uname -m)
+machineInfo=$(uname -m)
+
+# Checks if a command is available
+# Params: $1=name
+bin_exists() {
+	command -v foo >/dev/null 2>&1
+}
+
+# Checks if a package is installed
+# Params: $1=Name
+is_installed() {
+	
+	# <DPKG>
+	res=$( dpkg-query -l "${1}" | tail -1 | awk '{ print $1 }' )
+	[ "${res}" == "ii" ]
+}
+
+# Downloads a file from oracle.com and saves it to ${TmpDir}
+# Params: $1=URL
+oracle_download() {
+	wget --no-cookies --no-check-certificate --header "Cookie: oraclelicense=accept-securebackup-cookie" -P ${TmpDir} ${1}
+}
+
+
+# WINE FUNCTIONS
+# ######################################################################
 
 
 init_winedir() {
-	Winedir=$1
+	Winedir=${1}
 	winTmpDirU="${Winedir}/dosdevices/c:/windows/temp"
 	winTmpDirW="C:\\windows\\Temp"
-}
-
-bin_exists() {
-	[ -x "$(which $1)" ]
 }
 
 override_app_dlls() {
@@ -143,123 +162,6 @@ override_app_dlls() {
 
 	rm ${winTmpDirU}/override-dll.reg
 	unset oad_App oad_dll oad_option
-}
-
-str_subtring() {
-# Param: String, beginString, (optional)endString
-# Return: Substring between beginSubString and endSubString
-	_ss_pos1=`expr index "$1" "$2"`
-	_ss_pos1=`expr $_ss_pos1 + ${#2} - 1`
-
-	if ! [ ${#3} -eq 0 ]; then
-		_ss_pos2=`expr index "${1:_ss_pos1}" "$3"`
-		_ss_pos2=`expr $_ss_pos2 - 1`
-		echo ${1:_ss_pos1:_ss_pos2}
-	else
-		echo ${1:_ss_pos1}
-	fi
-	unset _ss_pos1 _ss_pos2
-}
-
-is_installed() {
-	
-	# <DPKG>
-	
-	program=$1	
-	res=$( dpkg-query -l "$1" | tail -1 | awk '{ print $1 }' )
-	
-	if [ "$res" == "ii" ]; then	return $True
-	else return $False
-	fi
-}
-
-install_open_java() {
-# Param: $1=jre/jdk $2= version
-
-	# <DPKG>
-
-	sudo apt-get install openjdk-$2-$1
-}
-
-uninstall_open_java() {
-	
-	# <DPKG>
-	
-	sudo apt-get purge openjdk*
-	sudo apt-get autoremove
-}
-
-install_oracle_java() {
-# Param: $1=jre/jdk $2=6/7
-
-	# <ORACLE>
-
-	ioj_TmpDir=$HOME/.tmpJavaInstall
-	ioj_JavaRelease=$2
-	ioj_javaVersionNumber=${ioj_JavaRelease:2:1}u${ioj_JavaRelease:6:6}
-	ioj_javaFolder=$1${ioj_JavaRelease:0:8}
-	ioj_Url="http://download.oracle.com/otn-pub/java/jdk/$ioj_javaVersionNumber"
-	ioj_package="$1-${ioj_javaVersionNumber:0:4}-linux-"
-
-	if [ "${varSysInfo:(-2)}"=="64" ]; then
-		ioj_package=$ioj_package"x64.tar.gz"
-	else
-		ioj_package=$ioj_package"i586.tar.gz"
-	fi
-
-	# creating temporary folder
-	if [ -d "$ioj_TmpDir" ]; then
-		rm -r $ioj_TmpDir
-	fi
-	mkdir $ioj_TmpDir
-
-	# Getting archive and creating jvm
-	wget --no-cookies --no-check-certificate --header "Cookie: oraclelicense=accept-securebackup-cookie" -P $ioj_TmpDir "$ioj_Url/$ioj_package"
-	tar -xvf $ioj_TmpDir/$ioj_package -C $ioj_TmpDir
-
-	if ! [ -d "/usr/lib/jvm" ]; then
-		sudo mkdir -p /usr/lib/jvm
-	fi
-	sudo mv $ioj_TmpDir/$ioj_javaFolder /usr/lib/jvm/$ioj_javaFolder
-
-	#Linking
-	if [ -f /usr/lib/jvm/$ioj_javaFolder/bin/java ]; then
-		sudo update-alternatives --install "/usr/bin/java" "java" "/usr/lib/jvm/$ioj_javaFolder/bin/java" 1
-		sudo update-alternatives --set java "/usr/lib/jvm/$ioj_javaFolder/bin/java"
-	fi
-	if [ -f /usr/lib/jvm/$ioj_javaFolder/bin/javac ]; then
-		sudo update-alternatives --install "/usr/bin/javac" "javac" "/usr/lib/jvm/$ioj_javaFolder/bin/javac" 1
-		sudo update-alternatives --set javac "/usr/lib/jvm/$ioj_javaFolder/bin/javac"
-	fi
-	if [ -f /usr/lib/jvm/$ioj_javaFolder/bin/javaws ]; then
-		sudo update-alternatives --install "/usr/bin/javaws" "javaws" "/usr/lib/jvm/$ioj_javaFolder/bin/javaws" 1
-		sudo update-alternatives --set javaws "/usr/lib/jvm/$ioj_javaFolder/bin/javaws"
-	fi
-
-	#Cleaning
-	rm -r $ioj_TmpDir
-	unset ioj_JavaRelease ioj_javaVersionNumber ioj_javaFolder ioj_Url ioj_package
-}
-
-remove_oracle_java() {
-#Param: $1=jre/jdk $2=version
-
-	# <ORACLE>
-	
-	ioj_javaFolder=$1${2:0:8}
-	if [ -f /usr/lib/jvm/$ioj_javaFolder/bin/java ]; then
-		sudo update-alternatives --remove java "/usr/lib/jvm/$ioj_javaFolder/bin/java"
-	fi
-	if [ -f /usr/lib/jvm/$ioj_javaFolder/bin/javac ]; then
-		sudo update-alternatives --remove javac "/usr/lib/jvm/$ioj_javaFolder/bin/javac"
-	fi
-	if [ -f /usr/lib/jvm/$ioj_javaFolder/bin/javaws ]; then
-		sudo update-alternatives --remove javaws "/usr/lib/jvm/$ioj_javaFolder/bin/javaws"
-	fi
-	sudo rm -rf "/usr/lib/jvm/$ioj_javaFolder"
-
-	#Cleaning
-	unset ioj_javaFolder
 }
 
 
@@ -293,11 +195,10 @@ echo "----------------------------------"
 # Check for installed package, offer to install it
 if ! is_installed oracle-java8-installer; then
 	echo "Package oracle-java8-installer NOT found"
-	#java8installerFound=$True # TEMP
-
+	
 else
 	echo "Package oracle-java8-installer found"
-	#java8installerFound=$False # TEMP
+	
 fi
 
 
@@ -343,7 +244,8 @@ fi
 echo -e "\nInstalling Java FX Scenebuilder 2.0 for Linux. . ."
 echo "-----------------------------------------------"
 
-if ! is_installed scenebuilder; then
+if ! is_installed scenebuilder; then # TODO: make a deeper check
+
 	echo "You don't seem to have it installed. It is required to use B4J"
 	echo "For now, you'll have to install it manually from here:"
 	echo "http://www.oracle.com/technetwork/java/javase/downloads/sb2download-2177776.html"
@@ -351,8 +253,8 @@ if ! is_installed scenebuilder; then
 	read -p "press a key to continue"
 	
 	
-	if [ ${varSysInfo} == "x86_64" ]; then
-		UrlPackJavaFxSB64
+	if [ "${machineInfo:(-2)}"=="64" ]; then
+		echo $UrlPackJavaFxSB64
 	else
 		echo "32"
 	fi
@@ -443,8 +345,8 @@ echo "------------------------------------------"
 if ! [ -d "${WineB4}/drive_c/Program Files/Java/" ]; then
 	read -p "Do you want to install JDK for windows? (y/n) " yn
 	if [ "$yn" = "y" ]; then
-		wget --no-cookies --no-check-certificate --header "Cookie: oraclelicense=accept-securebackup-cookie" -P $TmpDir $UrlJdkWindows
-		WINEARCH=win32 WINEPREFIX=${WineB4} wine $TmpDir/$ProgInstallJdk
+		oracle_download ${UrlJdkWindows}
+		WINEARCH=win32 WINEPREFIX=${WineB4} wine ${TmpDir}/${ProgInstallJdk}
 	fi
 else
 	echo "JDK for Windows is already installed"
