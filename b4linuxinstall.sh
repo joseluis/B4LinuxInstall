@@ -77,36 +77,87 @@ b4aFile=${b4aURL##*/}
 b4jURL=http://www.basic4ppc.com/b4j/files/B4J.exe
 b4jFile=${b4jURL##*/}
 
+# ANDROID & WINE
+# ----------------------------------------------------------------------
+
 # Android SDK for Linux
-UrlPackAndroidSdk=http://dl.google.com/android/android-sdk_r23.0.2-linux.tgz
-PackAndroidSdk=${UrlPackAndroidSdk##*/}
-ApiNumber="20.0.0" # The folder named after the api version installed. Used to fix a path.
+AndroidSdkUrl=http://dl.google.com/android/android-sdk_r23.0.2-linux.tgz
+AndroidSdkFile=${AndroidSdkUrl##*/}
+AndroidSdkApi="20.0.0" # The folder named after the api version installed. Used to fix a path.
 
 # Compatibility elements for the android SDK and Wine
-UrlPackAdaptAndroidSdk=http://github.com/joseluis/B4LinuxInstall/raw/master/sdk-B4A.tar.gz
-PackAdaptAndroidSdk=${UrlPackAndroidSdk##*/}
-
-# JavaFX Scene Builder for Linux
-UrlPackJavaFxSB32=http://download.oracle.com/otn-pub/java/javafx_scenebuilder/2.0-b20/javafx_scenebuilder-2_0-linux-i586.deb
-UrlPackJavaFxSB64=http://download.oracle.com/otn-pub/java/javafx_scenebuilder/2.0-b20/javafx_scenebuilder-2_0-linux-x64.deb
-PackJavaFxSB32=${UrlPackJavaFxSB32##*/}
-PackJavaFxSB64=${UrlPackJavaFxSB64##*/}
-
-# JDK for Windows
-UrlJdkWindows=http://download.oracle.com/otn-pub/java/jdk/7u67-b01/jdk-7u67-windows-i586.exe # version 1.7
-#UrlJdkWindows=http://download.oracle.com/otn-pub/java/jdk/8u20-b26/jdk-8u20-windows-i586.exe # version 1.8 gives an error on install
-ProgInstallJdk=${UrlJdkWindows##*/}
-OracleJvm=1.7.0_67-b01
+AndroidSdkWineCompatUrl=http://github.com/joseluis/B4LinuxInstall/raw/master/sdk-B4A.tar.gz
+AndroidSdkWineCompatFile=${AndroidSdkUrl##*/}
 
 # Wine version to use
 WinePkg="wine1.6" # stable version, preferred
 #WinePkg="wine1.7" # beta version, not needed
 
+# ORACLE JAVA
+# ----------------------------------------------------------------------
+#
+# WARNING: Please make sure to update the MD5SUM when updating a file link
+#
+# Checksum for Java SE 7u67 binaries
+# https://www.oracle.com/webfolder/s/digest/java-se-binaries-checksum-1956892.html
+# Checksum for Java SE 8u20 binaries
+# https://www.oracle.com/webfolder/s/digest/javase8-binaries-checksum-2133161.html
+
+
+# JDK for Windows
+JdkWindowsUrl=http://download.oracle.com/otn-pub/java/jdk/7u67-b01/jdk-7u67-windows-i586.exe # version 1.7
+JdkWindowsMd5=dbe6f185f836cd43221827eae1dfff79
+
+#JdkWindowsUrl=http://download.oracle.com/otn-pub/java/jdk/8u20-b26/jdk-8u20-windows-i586.exe # version 1.8 fails installation on wine
+#JdkWindowsMd5=a32589ba83f3aa5a8b1737339604b609
+
+JdkWindowsPack=${JdkWindowsUrl##*/}
+
+# JDK for Linux
+JdkLinuxUrl32=""
+JdkLinuxMd532=""
+JdkLinuxFile32=${JdkLinuxUrl32##*/}
+
+JdkLinuxUrl64=""
+JdkLinuxMd564=""
+JdkLinuxFile64=${JdkLinuxUrl64##*/}
+
+# JavaFX Scene Builder for Linux
+JavaFxSBUrl32=http://download.oracle.com/otn-pub/java/javafx_scenebuilder/2.0-b20/javafx_scenebuilder-2_0-linux-i586.deb
+JavaFxSBMd532=43ddb9463a784c23a8691932294a3db1
+JavaFxSBFile32=${JavaFxSBUrl32##*/}
+
+JavaFxSBUrl64=http://download.oracle.com/otn-pub/java/javafx_scenebuilder/2.0-b20/javafx_scenebuilder-2_0-linux-x64.deb
+JavaFxSBMd564=2f3028d4164a09b0a20ee7ea7b942187
+JavaFxSBFile64=${JavaFxSBUrl64##*/}
+
 
 # GLOBAL SYSTEM VARIABLES
 # ######################################################################
 
+# 32 or 64 bits
 [ $(uname -m) == "x86_64" ] && SObits="64" || SObits="32"
+
+# Text color variables
+txtred=$(tput setaf 1)		# Color Red
+txtgre=$(tput setaf 2)		# Color Green
+txtyel=$(tput setaf 3)		# Color Yellow
+txtblu=$(tput setaf 4)		# Color Blue
+txtmag=$(tput setaf 5)		# Color Magenta
+txtcya=$(tput setaf 6)		# Color Cyan
+txtwhi=$(tput setaf 7)		# Color White
+txtbld=$(tput bold)		# Style Bold
+txtund=$(tput sgr 0 1)		# Style Underline
+
+txtRST=$(tput sgr0)		# Style Reset
+
+txtSECT=${txtwht}${txtbld}	# Section
+txtINFO=${txtwhi}		# Info
+txtPASS=${txtgre}		# Passed
+txtWARN=${txtyel}		# Warning
+txtERR=${txtred}		# Error
+txtQUES=${txtmag}		# Question
+txtCODE=${txtblu}		# Code
 
 
 # UTILITY FUNCTIONS
@@ -136,7 +187,6 @@ oracle_download() {
 
 # WINE FUNCTIONS
 # ######################################################################
-
 
 init_winedir() {
 	Winedir=${1}
@@ -191,8 +241,8 @@ mkdir ${TmpDir}
 # ORACLE JAVA INSTALLATION (LINUX)
 # ######################################################################
 
-echo -e "\nInstalling Java for Linux. . ."
-echo "------------------------------"
+echo -e "\n${txtSECT}Installing Java for Linux..."
+echo "--------------------------------------------${txtRST}"
 
 # <ORACLE>
 
@@ -201,25 +251,25 @@ if bin_exists java; then
 	javaFullVersion=$(java -version 2>&1 | head -1 | awk -F '"' '/version/ {print $2}' )
 	javaBigVersion=$(echo ${javaFullVersion} | cut -d'.' -f1-2 )
 
-	echo "java -version = $javaFullVersion"
+	#echo "java -version detected: $javaFullVersion" # TEMP
 fi
 
 # Installs java
-# TODO
-if [ "${javaBigVersion}" == "1.8" ] || [ "${javaBigVersion}" == "1.7" ]; then
-	echo "You seem to have java ${javaBigVersion} already installed. That's enough."
+# TODO: make debian compatible
+if [ "${javaBigVersion}" == "1.8" ]; then
+	echo "${txtPASS}You seem to have java ${javaBigVersion} already installed.${txtRST}"
 else	
-	read -p "You need Oracle Java 1.8. Do you want to install Java now? (y/n) " yn
+	read -p "${txtQUES}Oracle Java version 1.8 is a requirement for JavaFX Scenebuilder and B4J. Do you want to install Java now? (y/n) ${txtRST}" yn
 	if [ "$yn" = "y" ]; then
 		
 		# <UBUNTU>
-		echo "We are going to execute these commands:"
-		echo "    sudo add-apt-repository ppa:webupd8team/java"
+		echo "${txtINFO}We are going to execute these commands:${txtRST}"
+		echo "    ${txtCODE}sudo add-apt-repository ppa:webupd8team/java"
 		echo "    sudo apt-get update"
 		echo "    sudo apt-get install oracle-java8-installer"
-		echo "    sudo update-java-alternatives -s java-8-oracle"
+		echo "    sudo update-java-alternatives -s java-8-oracle${txtRST}"
 		
-		read -p "Continue? (y/n)"
+		read -p "${txtQUES}Continue? (y/n) ${txtRST}"
 		if [ "$yn" = "y" ]; then
 			sudo add-apt-repository ppa:webupd8team/java
 			sudo apt-get update
@@ -235,36 +285,35 @@ fi
 
 # <ORACLE>
 
-echo -e "\nInstalling Java FX Scenebuilder for Linux. . ."
-echo "----------------------------------------------"
-
+echo -e "\n${txtSECT}Installing Java FX Scenebuilder for Linux..."
+echo "--------------------------------------------${txtRST}"
 if ! package_exists scenebuilder; then # TODO: make a deeper check
 
 # Package to download, depending on architecture and package manager
 		
-	read -p "You need Oracle Java FX Scenebuilder. Do you want to install it now? (y/n) " yn
+	read -p "${txtQUES}You need Oracle Java FX Scenebuilder. Do you want to install it now? (y/n) ${txtRST}" yn
 
 	if [ "$yn" = "y" ]; then
 
 			
-		echo "We are going to download the package and execute these commands:"
+		echo "${txtINFO}We are going to download the package and execute these commands:${txtRST}"
 		
 		# <DPKG>
-		UrlPackJavaFxSB="UrlPackJavaFxSB${SObits}"
-		UrlPackJavaFxSB=${!UrlPackJavaFxSB}
-		PackJavaFxSB="PackJavaFxSB${SObits}"
-		PackJavaFxSB=${!PackJavaFxSB}	
-		echo "    sudo dpkg -I ${PackJavaFxSB}"
+		JavaFxSBUrl="JavaFxSBUrl${SObits}"
+		JavaFxSBUrl=${!JavaFxSBUrl}
+		JavaFxSBFile="JavaFxSBFile${SObits}"
+		JavaFxSBFile=${!JavaFxSBFile}	
+		echo "${txtCODE}    sudo dpkg -I ${JavaFxSBFile}${txtRST}"
 		
-		read -p "Continue? (y/n)"
+		read -p "${txtQUES}Continue? (y/n) ${txtRST}"
 		if [ "$yn" = "y" ]; then
-			oracle_download ${UrlPackJavaFxSB}
-			sudo dpkg -i ${TmpDir}/${PackJavaFxSB} # TODO: create function package_install
+			oracle_download ${JavaFxSBUrl}
+			sudo dpkg -i ${TmpDir}/${JavaFxSBFile} # TODO: create function package_install
 		fi
 	fi
 	
 else
-	echo "You seem to have it already installed."
+	echo "${txtPASS}You seem to have Java FX SceneBuilder already installed.${txtRST}"
 fi
 
 
@@ -275,15 +324,15 @@ fi
 # Inside Tools: SDK Platform-tools + Build-tools (both selected by default)
 # Inside the last stable API: SDK Platform + one System Image (e.g. x86 Atom)
 
-echo -e "\nInstalling Android SDK for Linux. . ."
-echo "-------------------------------------"
+echo -e "\n${txtSECT}Installing Android SDK for Linux..."
+echo "--------------------------------------------${txtRST}"
 
 # Android SDK Installation
 if ! [ -d "${wksB4}/android-sdk-linux/" ]; then
-	read -p "Do you want to install Android SDK? (y/n) " yn
+	read -p "${txtQUES}Do you want to install Android SDK? (y/n) ${txtRST}" yn
 	if [ "$yn" = "y" ]; then
-		wget -P ${TmpDir} ${UrlPackAndroidSdk};
-		tar -zxvf ${TmpDir}/${PackAndroidSdk} -C ${wksB4}
+		wget -P ${TmpDir} ${AndroidSdkUrl};
+		tar -zxvf ${TmpDir}/${AndroidSdkFile} -C ${wksB4}
 		${wksB4}/android-sdk-linux/tools/android 2>/dev/null
 	fi
 	
@@ -291,7 +340,7 @@ if ! [ -d "${wksB4}/android-sdk-linux/" ]; then
 	ln -sf ../build-tools/${ApiFolder}/lib ${wksB4}/android-sdk-linux/platform-tools/lib
 	
 else
-	echo "Android SDK already installed"
+	echo "${txtPASS}Android SDK is already installed${txtRST}"
 
 fi
 
@@ -299,41 +348,57 @@ fi
 if [ -d "${wksB4}/android-sdk-linux/tools/" ] && (! [ -f "${wksB4}/android-sdk-linux/platform-tools/adb.exe" ]); then
 	echo "echo OFF" > ${wksB4}/android-sdk-linux/tools/android.bat
 	echo "start /unix ${wksB4}/android-sdk-linux/tools/android avd" >> ${wksB4}/android-sdk-linux/tools/android.bat
-	wget -P ${TmpDir} -O ${TmpDir}/${PackAdaptAndroidSdk} ${UrlPackAdaptAndroidSdk};  # TODO: change file to sdk-B4.tar.gz ..?
-	tar -xzvf ${TmpDir}/${PackAdaptAndroidSdk} -C ${wksB4}/android-sdk-linux
+	wget -P ${TmpDir} -O ${TmpDir}/${AndroidSdkWineCompatFile} ${AndroidSdkWineCompatUrl};  # TODO: change file to sdk-B4.tar.gz ..?
+	tar -xzvf ${TmpDir}/${AndroidSdkWineCompatFile} -C ${wksB4}/android-sdk-linux
 else
-	echo "Wine compatibility elements for Android SDK already installed"
+	echo "${txtPASS}Compatibility elements for Android SDK with Wine are already installed${txtRST}"
 fi
 
 
 # WINE INSTALLATION (LINUX)
 # ######################################################################
 
-echo -e "\nInstalling Wine 1.6 for Linux. . ."
-echo "---------------------------------------"
+echo -e "\n${txtSECT}Installing Wine for Linux..."
+echo "--------------------------------------------${txtRST}"
 
-# <UBUNTU>
+bin_exists wine ; wineFound=$?
+bin_exists winetricks ; winetricksFound=$?
 
-if ! package_exists ${WinePkg} || ! package_exists winetricks; then
-	echo "Wine and/or winetricks do not seem to be installed on your system."
-	read -p "Do you want to install it? (y/n) " yn
+if [ $wineFound -eq 0 ]; then
+	wineVers=$(wine --version | cut -d'-' -f2 | cut -d'.' -f1-2)
+	echo "${txtPASS}Detected wine version ${wineVers}${txtRST}"
+else
+	echo "${txtWARN}Wine not found${txtRST}"
+fi
+if [ $winetricksFound -eq 0 ]; then
+	winetricksVers=$(winetricks --version)
+	echo "${txtPASS}Detected winetricks version ${winetricksVers}${txtRST}"
+else
+	echo "${txtWARN}Winetricks not found${txtRST}"
+fi
+
+# Installing wine
+if [ $wineFound -ne 0 -o $winetricksFound -ne 0 ]; then
+	echo "${txtINFO}Wine and/or winetricks do not seem to be installed on your system.${txtRST}"
+	read -p "${txtQUES}Do you want to install it? (y/n) ${txtRST}" yn
 	if [ "$yn" = "y" ]; then
+	
+	# <UBUNTU>
+	
 		sudo add-apt-repository ppa:ubuntu-wine/ppa
 		sudo apt-get update
 		sudo apt-get install ${WinePkg} winetricks
 	fi
-else
-	echo "Wine is already installed"
 fi
 
 # Environment preparation for Wine (32 bits)
 if ! [ -d "${WineB4}" ]; then
 	# TODO: It needs to pause here
-	echo "Initializing Wine's environment. . ."
+	echo "${txtINFO}Initializing Wine's environment. . .${txtRST}"
 	WINEARCH=win32 WINEPREFIX=${WineB4} wine do_not_exists 2>/dev/null
 	WINEARCH=win32 WINEPREFIX=${WineB4} winetricks dotnet20
 else
-	echo "Environment for Wine 32 bits width dotnet20 is already installed"
+	echo "${txtPASS}Environment for Wine 32 bits width dotnet20 is already installed${txtRST}"
 fi
 
 
@@ -343,20 +408,20 @@ fi
 # The only component that needs to be installed is the Development Tools
 # Don't install the Source Code nor the Public JRE
 
-echo -e "\nInstalling Java 1.7 for Windows 32bit. . ."
-echo "------------------------------------------"
+echo -e "\n${txtSECT}Installing Java 1.7 for Windows 32bit. . ."
+echo "--------------------------------------------${txtRST}"
 # NOTE: Java 1.8 gives error in installation
 #
 # <ORACLE>
 
 if ! [ -d "${WineB4}/drive_c/Program Files/Java/" ]; then
-	read -p "Do you want to install JDK for windows? (y/n) " yn
+	read -p "${txtQUES}Do you want to install JDK for windows? (y/n) ${txtRST}" yn
 	if [ "$yn" = "y" ]; then
-		oracle_download ${UrlJdkWindows}
-		WINEARCH=win32 WINEPREFIX=${WineB4} wine ${TmpDir}/${ProgInstallJdk}
+		oracle_download ${JdkWindowsUrl}
+		WINEARCH=win32 WINEPREFIX=${WineB4} wine ${TmpDir}/${JdkWindowsPack}
 	fi
 else
-	echo "JDK for Windows is already installed"
+	echo "${txtPASS}JDK for Windows is already installed${txtRST}"
 fi
 
 
@@ -365,14 +430,14 @@ fi
 
 # TODO: Test if it's ok launching it after installation
 
-echo -e "\nInstalling B4A for Windows 32bit. . ."
-echo "---------------------------------------"
+echo -e "\n${txtSECT}Installing B4A for Windows 32bit..."
+echo "--------------------------------------------${txtRST}"
 
 if [ -f "${WineB4}/drive_c/Program Files/Anywhere Software/Basic4android/Basic4android.exe" ]; then
-	echo "B4A is already installed   -"
-	read -p "Do you want to update B4A? (y/n) " yn
+	echo "${txtPASS}B4A is already installed${txtRST}"
+	read -p "${txtQUES}Do you want to update B4A? (y/n) ${txtRST}" yn
 else
-	read -p "Do you want to install B4A? (y/n)" yn
+	read -p "${txtQUES}Do you want to install B4A? (y/n) ${txtRST}" yn
 fi
 
 if [ "$yn" == "y" ]; then 
@@ -393,23 +458,23 @@ fi
 		echo "Icon=B5FB_Basic4android.0" >>${wksB4}/${B4A_desktop}
 		chmod +x ${wksB4}/${B4A_desktop}
 	else
-		echo "link for B4A already exists"
+		echo "${txtPASS}Link for B4A already exists${txtRST}"
 	fi
 
 
 # B4J INSTALLATION (WINE)
 # ######################################################################
 
-echo -e "\nInstalling B4J for Windows 32bit. . ."
-echo "---------------------------------------"
+echo -e "\n${txtSECT}Installing B4J for Windows 32bit..."
+echo "--------------------------------------------${txtRST}"
 
 # TODO: Test if it's ok launching it after installation
 
 if [ -f "${WineB4}/drive_c/Program Files/Anywhere Software/B4J/B4J.exe" ]; then
-	echo "B4J is already installed   -"
-	read -p "Do you want to update B4J? (y/n) " yn
+	echo "${txtPASS}B4J is already installed${txtRST}"
+	read -p "${txtQUES}Do you want to update B4J? (y/n) ${txtRST}" yn
 else
-	read -p "Do you want to install B4J? (y/n)" yn
+	read -p "${txtQUES}Do you want to install B4J? (y/n) ${txtRST}" yn
 fi
 
 if [ "$yn" == "y" ]; then
@@ -429,7 +494,7 @@ fi
 		echo "Icon=7BEB_B4J.0" >>${wksB4}/${B4J_desktop}
 		chmod +x ${wksB4}/${B4J_desktop}
 	else
-		echo "link for B4J already exists-"
+		echo "${txtPASS}Link for B4J already exists${txtRST}"
 	fi
 
 
@@ -438,15 +503,15 @@ fi
 
 # TODO: Make this an option in the menu. Show size.
 
-echo -e "\nCleanup & exit"
-echo "---------------------------------------"
+echo -e "\n${txtSECT}Cleanup & exit"
+echo "--------------------------------------------${txtRST}"
 
-read -p "Do you want to delete the downloaded files in ${TmpDir}? (y/n) " yn
+read -p "${txtQUES}Do you want to delete the temporary downloaded files? (y/n) ${txtRST}" yn
 if [ "$yn" = "y" ]; then
-	echo "Deleting ${TmpDir} . . ."
+	echo "${txtINFO}Deleting ${TmpDir} . . .${txtRST}"
 	rm -r ${TmpDir}
 fi
 
 
-echo "Bye!"
+echo -e "\n${txtcya}Bye!${txtRST}\n"
 
