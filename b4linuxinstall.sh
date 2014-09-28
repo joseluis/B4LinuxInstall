@@ -88,7 +88,7 @@ txtPASS=${txtgre}		# Passed
 txtWARN=${txtyel}		# Warning
 txtERR=${txtred}		# Error
 txtQUES=${txtmag}		# Question
-txtCODE=${txtblu}		# Code
+txtCODE=${txtcya}		# Code
 
 # B4J download link
 b4jURL=http://www.basic4ppc.com/b4j/files/B4J.exe
@@ -533,5 +533,5 @@ if [ "${yn}" = "y" ]; then
 fi
 
 
-echo -e "\n${txtcya}Bye!${txtRST}\n"
+echo -e "\n${txtINFO}Bye!${txtRST}\n"
 
