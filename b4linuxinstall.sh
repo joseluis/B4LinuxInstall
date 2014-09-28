@@ -15,9 +15,10 @@
 #
 # IMPORTANT INSTRUCTIONS
 # ######################################################################
-# - You can replace the contents of the variable b4aURL with the URL of
-#	the full version to B4A, sent by email to you after you buy it.
-#
+# - You can pass this script as the first parameter, the URL of the full
+# version of B4A, which you should receive by email after you bought it.
+# e.g.:
+#		./b4linuxinstall.sh http://theurl.to/the/fullversion.exe
 #
 # LICENSE
 # ######################################################################
@@ -62,20 +63,67 @@
 #
 
 
-# GLOBAL CUSTOMIZABLE VARIABLES
+# 1 UTILITY VARIABLES (DON'T TOUCH THIS. GO TO SECTION 2)
 # ######################################################################
 
-# Workspace folder (you can change it)
-wksB4=${HOME}/workspace_b4
+# 32 or 64 bits
+[ $(uname -m) == "x86_64" ] && SObits="64" || SObits="32"
 
-# B4A download link
-# If you bought B4A you can change the link to the full version here:
-b4aURL=http://www.basic4ppc.com/android/files/b4a-trial.exe # demo version
-b4aFile=${b4aURL##*/}
+# Text color variables
+txtred=$(tput setaf 1)		# Color Red
+txtgre=$(tput setaf 2)		# Color Green
+txtyel=$(tput setaf 3)		# Color Yellow
+txtblu=$(tput setaf 4)		# Color Blue
+txtmag=$(tput setaf 5)		# Color Magenta
+txtcya=$(tput setaf 6)		# Color Cyan
+txtwhi=$(tput setaf 7)		# Color White
+txtbld=$(tput bold)		# Style Bold
+txtund=$(tput sgr 0 1)		# Style Underline
+
+txtRST=$(tput sgr0)		# Style Reset
+
+txtSECT=${txtwht}${txtbld}	# Section
+txtINFO=${txtwhi}		# Info
+txtPASS=${txtgre}		# Passed
+txtWARN=${txtyel}		# Warning
+txtERR=${txtred}		# Error
+txtQUES=${txtmag}		# Question
+txtCODE=${txtblu}		# Code
 
 # B4J download link
 b4jURL=http://www.basic4ppc.com/b4j/files/B4J.exe
 b4jFile=${b4jURL##*/}
+
+# B4A download link
+b4aURL=http://www.basic4ppc.com/android/files/b4a-trial.exe # demo version
+b4aFullUrl=${1}
+if [ "${b4aFullUrl}" == "" ]; then
+	echo "${txtWARN}Warning: No URL supplied. This script will download the ${txtINFO}DEMO${txtRST}${txtWARN} version of B4A."
+	read -p "${txtQUES}Continue? (y/n) ${txtRST}" yn
+	if [ "${yn}" != "y" ]; then
+		exit
+	fi
+else
+	regex='(https?|ftp|file)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]'
+	if [[ "${b4aFullUrl}" =~ ${regex} ]]; then
+		b4aURL="${b4aFullUrl}" # use the 1st parameter as the full version
+	else
+		echo "${txtWARN}Warning: the first parameter ${txtRST}${txtERROR}${b4aFullUrl}${txtRST}${txtWARN} is not a valid URL."
+		echo "This script will download the ${txtINFO}DEMO${txtRST}${txtWARN} version of B4A instead.${txtRST}"
+		read -p "${txtQUES}Continue? (y/n) ${txtRST}" yn
+		if [ "${yn}" != "y" ]; then
+			exit
+		fi
+	fi
+fi
+b4aFile=${b4aURL##*/}
+
+
+# 2 CUSTOMIZABLE VARIABLES (ONLY IF YOU KNOW WHAT YOU ARE DOING)
+# ######################################################################
+
+# Workspace folder
+wksB4=${HOME}/workspace_b4
 
 # ANDROID & WINE
 # ----------------------------------------------------------------------
@@ -132,35 +180,7 @@ JavaFxSBMd564=2f3028d4164a09b0a20ee7ea7b942187
 JavaFxSBFile64=${JavaFxSBUrl64##*/}
 
 
-# GLOBAL SYSTEM VARIABLES
-# ######################################################################
-
-# 32 or 64 bits
-[ $(uname -m) == "x86_64" ] && SObits="64" || SObits="32"
-
-# Text color variables
-txtred=$(tput setaf 1)		# Color Red
-txtgre=$(tput setaf 2)		# Color Green
-txtyel=$(tput setaf 3)		# Color Yellow
-txtblu=$(tput setaf 4)		# Color Blue
-txtmag=$(tput setaf 5)		# Color Magenta
-txtcya=$(tput setaf 6)		# Color Cyan
-txtwhi=$(tput setaf 7)		# Color White
-txtbld=$(tput bold)		# Style Bold
-txtund=$(tput sgr 0 1)		# Style Underline
-
-txtRST=$(tput sgr0)		# Style Reset
-
-txtSECT=${txtwht}${txtbld}	# Section
-txtINFO=${txtwhi}		# Info
-txtPASS=${txtgre}		# Passed
-txtWARN=${txtyel}		# Warning
-txtERR=${txtred}		# Error
-txtQUES=${txtmag}		# Question
-txtCODE=${txtblu}		# Code
-
-
-# UTILITY FUNCTIONS
+# 3 UTILITY FUNCTIONS
 # ######################################################################
 
 # Checks if a command is available
@@ -185,7 +205,7 @@ oracle_download() {
 }
 
 
-# WINE FUNCTIONS
+# 4 WINE FUNCTIONS
 # ######################################################################
 
 init_winedir() {
@@ -220,7 +240,7 @@ override_app_dlls() {
 }
 
 
-# SETUP FOLDERS
+# 5 SETUP FOLDERS
 # ######################################################################
 TmpDir=${wksB4}/temp
 WineB4=${wksB4}/wine_b4
@@ -238,7 +258,7 @@ fi
 mkdir ${TmpDir}
 
 
-# ORACLE JAVA INSTALLATION (LINUX)
+# 6 ORACLE JAVA INSTALLATION (LINUX)
 # ######################################################################
 
 echo -e "\n${txtSECT}Installing Java for Linux..."
@@ -260,7 +280,7 @@ if [ "${javaBigVersion}" == "1.8" ]; then
 	echo "${txtPASS}You seem to have java ${javaBigVersion} already installed.${txtRST}"
 else	
 	read -p "${txtQUES}Oracle Java version 1.8 is a requirement for JavaFX Scenebuilder and B4J. Do you want to install Java now? (y/n) ${txtRST}" yn
-	if [ "$yn" = "y" ]; then
+	if [ "${yn}" = "y" ]; then
 		
 		# <UBUNTU>
 		echo "${txtINFO}We are going to execute these commands:${txtRST}"
@@ -269,8 +289,8 @@ else
 		echo "    sudo apt-get install oracle-java8-installer"
 		echo "    sudo update-java-alternatives -s java-8-oracle${txtRST}"
 		
-		read -p "${txtQUES}Continue? (y/n) ${txtRST}"
-		if [ "$yn" = "y" ]; then
+		read -p "${txtQUES}Continue? (y/n) ${txtRST}" yn
+		if [ "${yn}" = "y" ]; then
 			sudo add-apt-repository ppa:webupd8team/java
 			sudo apt-get update
 			sudo apt-get install oracle-java8-installer
@@ -280,7 +300,7 @@ else
 fi
 
 
-# JAVA FX SCENE BUILDER INSTALLATION (LINUX)
+# 7 JAVA FX SCENE BUILDER INSTALLATION (LINUX)
 # ######################################################################
 
 # <ORACLE>
@@ -293,7 +313,7 @@ if ! package_exists scenebuilder; then # TODO: make a deeper check
 		
 	read -p "${txtQUES}You need Oracle Java FX Scenebuilder. Do you want to install it now? (y/n) ${txtRST}" yn
 
-	if [ "$yn" = "y" ]; then
+	if [ "${yn}" = "y" ]; then
 
 			
 		echo "${txtINFO}We are going to download the package and execute these commands:${txtRST}"
@@ -306,7 +326,7 @@ if ! package_exists scenebuilder; then # TODO: make a deeper check
 		echo "${txtCODE}    sudo dpkg -I ${JavaFxSBFile}${txtRST}"
 		
 		read -p "${txtQUES}Continue? (y/n) ${txtRST}"
-		if [ "$yn" = "y" ]; then
+		if [ "${yn}" = "y" ]; then
 			oracle_download ${JavaFxSBUrl}
 			sudo dpkg -i ${TmpDir}/${JavaFxSBFile} # TODO: create function package_install
 		fi
@@ -317,7 +337,7 @@ else
 fi
 
 
-# ANDROID SDK INSTALLATION (LINUX)
+# 8 ANDROID SDK INSTALLATION (LINUX)
 # ######################################################################
 
 # The only components that needs to be installed are:
@@ -330,7 +350,7 @@ echo "--------------------------------------------${txtRST}"
 # Android SDK Installation
 if ! [ -d "${wksB4}/android-sdk-linux/" ]; then
 	read -p "${txtQUES}Do you want to install Android SDK? (y/n) ${txtRST}" yn
-	if [ "$yn" = "y" ]; then
+	if [ "${yn}" = "y" ]; then
 		wget -P ${TmpDir} ${AndroidSdkUrl};
 		tar -zxvf ${TmpDir}/${AndroidSdkFile} -C ${wksB4}
 		${wksB4}/android-sdk-linux/tools/android 2>/dev/null
@@ -355,7 +375,7 @@ else
 fi
 
 
-# WINE INSTALLATION (LINUX)
+# 9 WINE INSTALLATION (LINUX)
 # ######################################################################
 
 echo -e "\n${txtSECT}Installing Wine for Linux..."
@@ -381,7 +401,7 @@ fi
 if [ $wineFound -ne 0 -o $winetricksFound -ne 0 ]; then
 	echo "${txtINFO}Wine and/or winetricks do not seem to be installed on your system.${txtRST}"
 	read -p "${txtQUES}Do you want to install it? (y/n) ${txtRST}" yn
-	if [ "$yn" = "y" ]; then
+	if [ "${yn}" = "y" ]; then
 	
 	# <UBUNTU>
 	
@@ -402,7 +422,7 @@ else
 fi
 
 
-# ORACLE JAVA JDK INSTALLATION (WINE)
+# 10 ORACLE JAVA JDK INSTALLATION (WINE)
 # ######################################################################
 
 # The only component that needs to be installed is the Development Tools
@@ -416,7 +436,7 @@ echo "--------------------------------------------${txtRST}"
 
 if ! [ -d "${WineB4}/drive_c/Program Files/Java/" ]; then
 	read -p "${txtQUES}Do you want to install JDK for windows? (y/n) ${txtRST}" yn
-	if [ "$yn" = "y" ]; then
+	if [ "${yn}" = "y" ]; then
 		oracle_download ${JdkWindowsUrl}
 		WINEARCH=win32 WINEPREFIX=${WineB4} wine ${TmpDir}/${JdkWindowsPack}
 	fi
@@ -425,7 +445,7 @@ else
 fi
 
 
-# B4A INSTALLATION (WINE)
+# 11 B4A INSTALLATION (WINE)
 # ######################################################################
 
 # TODO: Test if it's ok launching it after installation
@@ -440,7 +460,7 @@ else
 	read -p "${txtQUES}Do you want to install B4A? (y/n) ${txtRST}" yn
 fi
 
-if [ "$yn" == "y" ]; then 
+if [ "${yn}" == "y" ]; then 
 	wget -P ${TmpDir} ${b4aURL}
 	WINEARCH=win32 WINEPREFIX=${WineB4} wine ${TmpDir}/${b4aFile} 2>/dev/null
 	override_app_dlls Basic4android.exe gdiplus native
@@ -462,7 +482,7 @@ fi
 	fi
 
 
-# B4J INSTALLATION (WINE)
+# 12 B4J INSTALLATION (WINE)
 # ######################################################################
 
 echo -e "\n${txtSECT}Installing B4J for Windows 32bit..."
@@ -477,7 +497,7 @@ else
 	read -p "${txtQUES}Do you want to install B4J? (y/n) ${txtRST}" yn
 fi
 
-if [ "$yn" == "y" ]; then
+if [ "${yn}" == "y" ]; then
 	wget -P ${TmpDir} ${b4jURL}
 	WINEARCH=win32 WINEPREFIX=${WineB4} wine ${TmpDir}/${b4jFile} 2>/dev/null
 	override_app_dlls B4J.exe gdiplus native
@@ -498,7 +518,7 @@ fi
 	fi
 
 
-# CLEANUP & EXIT
+# 13 CLEANUP & EXIT
 # ######################################################################
 
 # TODO: Make this an option in the menu. Show size.
@@ -507,7 +527,7 @@ echo -e "\n${txtSECT}Cleanup & exit"
 echo "--------------------------------------------${txtRST}"
 
 read -p "${txtQUES}Do you want to delete the temporary downloaded files? (y/n) ${txtRST}" yn
-if [ "$yn" = "y" ]; then
+if [ "${yn}" = "y" ]; then
 	echo "${txtINFO}Deleting ${TmpDir} . . .${txtRST}"
 	rm -r ${TmpDir}
 fi
