@@ -63,11 +63,8 @@
 #
 
 
-# 1 UTILITY VARIABLES (DON'T TOUCH THIS. GO TO SECTION 2)
+# 1 GLOBAL DATA (DON'T TOUCH THIS. GO TO SECTION 2)
 # ######################################################################
-
-# 32 or 64 bits
-[ $(uname -m) == "x86_64" ] && SObits="64" || SObits="32"
 
 # Text color variables
 txtred=$(tput setaf 1)		# Color Red
@@ -79,7 +76,6 @@ txtcya=$(tput setaf 6)		# Color Cyan
 txtwhi=$(tput setaf 7)		# Color White
 txtbld=$(tput bold)		# Style Bold
 txtund=$(tput sgr 0 1)		# Style Underline
-
 txtRST=$(tput sgr0)		# Style Reset
 
 txtSECT=${txtwht}${txtbld}	# Section
@@ -90,17 +86,33 @@ txtERR=${txtred}		# Error
 txtQUES=${txtmag}		# Question
 txtCODE=${txtcya}		# Code
 
+# Script permissions
+chmod 770 "${0}"
+
+# Check shell
+if [ "${-}" != 'hB' ]; then
+	echo "${txtERR}ERROR: Script not executed properly!${txtRST}"
+	echo "${txtINFO}Please run the script like this:${txtRST}"
+	echo "${txtCODE}\t${0}${txtRST}"
+	exit
+fi
+
+# 32 or 64 OS
+[ $(uname -m) == "x86_64" ] && SObits="64" || SObits="32"
+
 # B4J download link
 b4jURL=http://www.basic4ppc.com/b4j/files/B4J.exe
 b4jFile=${b4jURL##*/}
 
 # B4A download link
-b4aURL=http://www.basic4ppc.com/android/files/b4a-trial.exe # demo version
+b4aURL=http://www.basic4ppc.com/android/files/b4a-trial.exe # trial version
 b4aFullUrl=${1}
 if [ "${b4aFullUrl}" == "" ]; then
-	echo "${txtWARN}Warning: No URL supplied. This script will download the ${txtINFO}DEMO${txtRST}${txtWARN} version of B4A."
+	echo "${txtWARN}Warning: No URL supplied. This script will download the ${txtINFO}TRIAL${txtRST}${txtWARN} version of B4A."
 	read -p "${txtQUES}Continue? (y/n) ${txtRST}" yn
 	if [ "${yn}" != "y" ]; then
+		echo "${txtINFO}If you want${txtRST}"
+		echo "${txtCODE}\t${0} http://${txtRST}"
 		exit
 	fi
 else
@@ -109,7 +121,7 @@ else
 		b4aURL="${b4aFullUrl}" # use the 1st parameter as the full version
 	else
 		echo "${txtWARN}Warning: the first parameter ${txtRST}${txtERROR}${b4aFullUrl}${txtRST}${txtWARN} is not a valid URL."
-		echo "This script will download the ${txtINFO}DEMO${txtRST}${txtWARN} version of B4A instead.${txtRST}"
+		echo "This script will download the ${txtINFO}TRIAL${txtRST}${txtWARN} version of B4A instead.${txtRST}"
 		read -p "${txtQUES}Continue? (y/n) ${txtRST}" yn
 		if [ "${yn}" != "y" ]; then
 			exit
@@ -119,7 +131,7 @@ fi
 b4aFile=${b4aURL##*/}
 
 
-# 2 CUSTOMIZABLE VARIABLES (ONLY IF YOU KNOW WHAT YOU ARE DOING)
+# 2 CUSTOMIZABLE VARIABLES (ONLY TOUCH IF YOU KNOW WHAT YOU ARE DOING)
 # ######################################################################
 
 # Workspace folder
