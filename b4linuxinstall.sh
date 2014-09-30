@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# B4LinuxInstall (version 20140927) by joseLuís
+# B4LinuxInstall (version 20140930) by joseLuís
 # ----------------------------------------------------------------------
 # A bash script for installing B4* RAD tools in Linux systems
 #
@@ -97,7 +97,7 @@ if [ "${-}" != 'hB' ]; then
 	exit
 fi
 
-# 32 or 64 OS
+# 32bit or 64bit OS
 [ $(uname -m) == "x86_64" ] && SObits="64" || SObits="32"
 
 # B4J download link
@@ -111,8 +111,9 @@ if [ "${b4aFullUrl}" == "" ]; then
 	echo "${txtWARN}Warning: No URL supplied. This script will download the ${txtINFO}TRIAL${txtRST}${txtWARN} version of B4A."
 	read -p "${txtQUES}Continue? (y/n) ${txtRST}" yn
 	if [ "${yn}" != "y" ]; then
-		echo "${txtINFO}If you want${txtRST}"
-		echo "${txtCODE}\t${0} http://${txtRST}"
+		echo -e "${txtINFO}\nIf you want to install the full version of B4A, run the script with a parameter${txtRST}"
+		echo -e "${txtINFO}containing the download link that you received after buying the software. e.g.:${txtRST}"
+		echo -e "${txtCODE}\t${0} http://theurl.to/the/fullversion.exe${txtRST}"
 		exit
 	fi
 else
@@ -130,22 +131,27 @@ else
 fi
 b4aFile=${b4aURL##*/}
 
+B4JBridgeUrl=http://www.basic4ppc.com/b4j/files/b4j-bridge.jar
+B4JBridgeFile=${B4JBridgeUrl##*/}
+
 
 # 2 CUSTOMIZABLE VARIABLES (ONLY TOUCH IF YOU KNOW WHAT YOU ARE DOING)
 # ######################################################################
 
 # Workspace folder
-wksB4=${HOME}/workspace_b4
+DirWorkspace=${HOME}/workspace_b4
 
 # ANDROID & WINE
 # ----------------------------------------------------------------------
 
-# Android SDK for Linux
+# Android SDK for Linux 32) <UPDATE>
+
 AndroidSdkUrl=http://dl.google.com/android/android-sdk_r23.0.2-linux.tgz
 AndroidSdkFile=${AndroidSdkUrl##*/}
 AndroidSdkApi="20.0.0" # The folder named after the api version installed. Used to fix a path.
 
 # Compatibility elements for the android SDK and Wine
+
 AndroidSdkWineCompatUrl=http://github.com/joseluis/B4LinuxInstall/raw/master/sdk-B4A.tar.gz
 AndroidSdkWineCompatFile=${AndroidSdkUrl##*/}
 
@@ -160,36 +166,57 @@ WinePkg="wine1.6" # stable version, preferred
 #
 # Checksum for Java SE 7u67 binaries
 # https://www.oracle.com/webfolder/s/digest/java-se-binaries-checksum-1956892.html
+#
+# Downloads for Java SE 8
+# http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
 # Checksum for Java SE 8u20 binaries
 # https://www.oracle.com/webfolder/s/digest/javase8-binaries-checksum-2133161.html
 
+# JDK for Windows 32bit <UPDATE>
 
-# JDK for Windows
 JdkWindowsUrl=http://download.oracle.com/otn-pub/java/jdk/7u67-b01/jdk-7u67-windows-i586.exe # version 1.7
 JdkWindowsMd5=dbe6f185f836cd43221827eae1dfff79
-
 #JdkWindowsUrl=http://download.oracle.com/otn-pub/java/jdk/8u20-b26/jdk-8u20-windows-i586.exe # version 1.8 fails installation on wine
 #JdkWindowsMd5=a32589ba83f3aa5a8b1737339604b609
-
 JdkWindowsPack=${JdkWindowsUrl##*/}
 
-# JDK for Linux
-JdkLinuxUrl32=""
-JdkLinuxMd532=""
-JdkLinuxFile32=${JdkLinuxUrl32##*/}
+# JDK for Linux <UPDATE>
 
-JdkLinuxUrl64=""
-JdkLinuxMd564=""
-JdkLinuxFile64=${JdkLinuxUrl64##*/}
+case ${SObits} in
+	32)
+	# rpm
+	JdkLinuxRpmUrl="http://download.oracle.com/otn-pub/java/jdk/8u20-b26/jdk-8u20-linux-i586.rpm"
+	JdkLinuxRpmMd5="082330b7c5652caa8fa6f49016b940ea"
+	# tgz
+	JdkLinuxTgzUrl="http://download.oracle.com/otn-pub/java/jdk/8u20-b26/jdk-8u20-linux-i586.tar.gz"
+	JdkLinuxTgzMd5="5dafdef064e18468f21c65051a6918d7"
+	;;
+	64)
+	# rpm
+	JdkLinuxRpmUrl="http://download.oracle.com/otn-pub/java/jdk/8u20-b26/jdk-8u20-linux-x64.rpm"
+	JdkLinuxRpmMd5="98fc97402e9f37610d172953b64f2c8a"
+	# tgz
+	JdkLinuxTgzUrl="http://download.oracle.com/otn-pub/java/jdk/8u20-b26/jdk-8u20-linux-x64.tar.gz"
+	JdkLinuxTgzMd5="ec7f89dc3697b402e2c851d0488f6299"
+	;;
+esac
+JdkLinuxDebFile=${JdkLinuxDebUrl##*/}
+JdkLinuxRpmFile=${JdkLinuxRpmUrl##*/}
+JdkLinuxTgzFile=${JdkLinuxTgzUrl##*/}
 
-# JavaFX Scene Builder for Linux
-JavaFxSBUrl32=http://download.oracle.com/otn-pub/java/javafx_scenebuilder/2.0-b20/javafx_scenebuilder-2_0-linux-i586.deb
-JavaFxSBMd532=43ddb9463a784c23a8691932294a3db1
-JavaFxSBFile32=${JavaFxSBUrl32##*/}
+# JavaFX Scene Builder for Linux <UPDATE>
 
-JavaFxSBUrl64=http://download.oracle.com/otn-pub/java/javafx_scenebuilder/2.0-b20/javafx_scenebuilder-2_0-linux-x64.deb
-JavaFxSBMd564=2f3028d4164a09b0a20ee7ea7b942187
-JavaFxSBFile64=${JavaFxSBUrl64##*/}
+case ${SObits} in
+	32)
+	JavaFxSBDebUrl=http://download.oracle.com/otn-pub/java/javafx_scenebuilder/2.0-b20/javafx_scenebuilder-2_0-linux-i586.deb
+	JavaFxSBDebMd5=43ddb9463a784c23a8691932294a3db1
+	;;
+	64)
+	JavaFxSBDebUrl=http://download.oracle.com/otn-pub/java/javafx_scenebuilder/2.0-b20/javafx_scenebuilder-2_0-linux-x64.deb
+	JavaFxSBDebMd5=2f3028d4164a09b0a20ee7ea7b942187
+	;;
+esac
+JavaFxSBDebFile=${JavaFxSBDebUrl##*/}
 
 
 # 3 UTILITY FUNCTIONS
@@ -210,10 +237,10 @@ package_exists() {
 	[ "${res}" == "ii" ]
 }
 
-# Downloads a file from oracle.com and saves it to ${TmpDir}
+# Downloads a file from oracle.com and saves it to ${DirTmp}
 # Params: $1=URL
 oracle_download() {
-	wget --no-cookies --no-check-certificate --header "Cookie: oraclelicense=accept-securebackup-cookie" -P ${TmpDir} ${1}
+	wget --no-cookies --no-check-certificate --header "Cookie: oraclelicense=accept-securebackup-cookie" -P ${DirTmp} ${1}
 }
 
 
@@ -254,26 +281,25 @@ override_app_dlls() {
 
 # 5 SETUP FOLDERS
 # ######################################################################
-TmpDir=${wksB4}/temp
-WineB4=${wksB4}/wine_b4
-init_winedir ${WineB4}
+DirTmp=${DirWorkspace}/temp
+DirTools=${DirWorkspace}/tools
+DirWine=${DirWorkspace}/wine_b4
+init_winedir ${DirWine}
 
 # creating workspace folder
-if ! [ -d "${wksB4}" ]; then
-	mkdir ${wksB4}
-fi
+mkdir -p ${DirWorkspace}
+
+# creating workspace folder
+mkdir -p ${DirTools}
 
 # creating temporary folder
-if [ -d "${TmpDir}" ]; then
-	rm -r ${TmpDir}
-fi
-mkdir ${TmpDir}
+mkdir -p ${DirTmp}
 
 
 # 6 ORACLE JAVA INSTALLATION (LINUX)
 # ######################################################################
 
-echo -e "\n${txtSECT}Installing Java for Linux..."
+echo -e "\n${txtSECT}Installation of Java for Linux..."
 echo "--------------------------------------------${txtRST}"
 
 # <ORACLE>
@@ -293,17 +319,28 @@ if [ "${javaBigVersion}" == "1.8" ]; then
 else	
 	read -p "${txtQUES}Oracle Java version 1.8 is a requirement for JavaFX Scenebuilder and B4J. Do you want to install Java now? (y/n) ${txtRST}" yn
 	if [ "${yn}" = "y" ]; then
+				
+		# Check for the package
+		if ! [ package_exists oracle-java8-installer ]; then
 		
-		# <UBUNTU>
-		echo "${txtINFO}We are going to execute these commands:${txtRST}"
-		echo "    ${txtCODE}sudo add-apt-repository ppa:webupd8team/java"
+			# <UBUNTU> add the PPA
+			echo "${txtINFO}We are going to add the java8 ppa repository:${txtRST}"
+			echo "    ${txtCODE}sudo add-apt-repository ppa:webupd8team/java"
+			
+			read -p "${txtQUES}Continue? (y/n) ${txtRST}" yn
+			if [ "${yn}" = "y" ]; then
+				sudo add-apt-repository ppa:webupd8team/java
+			fi
+		fi
+		
+		echo "${txtINFO}Now we are going install Java 8:${txtRST}"
+		
 		echo "    sudo apt-get update"
 		echo "    sudo apt-get install oracle-java8-installer"
 		echo "    sudo update-java-alternatives -s java-8-oracle${txtRST}"
 		
 		read -p "${txtQUES}Continue? (y/n) ${txtRST}" yn
 		if [ "${yn}" = "y" ]; then
-			sudo add-apt-repository ppa:webupd8team/java
 			sudo apt-get update
 			sudo apt-get install oracle-java8-installer
 			sudo update-java-alternatives -s java-8-oracle
@@ -317,7 +354,7 @@ fi
 
 # <ORACLE>
 
-echo -e "\n${txtSECT}Installing Java FX Scenebuilder for Linux..."
+echo -e "\n${txtSECT}Installation of Java FX Scenebuilder for Linux..."
 echo "--------------------------------------------${txtRST}"
 if ! package_exists scenebuilder; then # TODO: make a deeper check
 
@@ -326,21 +363,17 @@ if ! package_exists scenebuilder; then # TODO: make a deeper check
 	read -p "${txtQUES}You need Oracle Java FX Scenebuilder. Do you want to install it now? (y/n) ${txtRST}" yn
 
 	if [ "${yn}" = "y" ]; then
-
 			
-		echo "${txtINFO}We are going to download the package and execute these commands:${txtRST}"
+		echo "${txtINFO}We are going to execute the following commands:${txtRST}"
 		
 		# <DPKG>
-		JavaFxSBUrl="JavaFxSBUrl${SObits}"
-		JavaFxSBUrl=${!JavaFxSBUrl}
-		JavaFxSBFile="JavaFxSBFile${SObits}"
-		JavaFxSBFile=${!JavaFxSBFile}	
-		echo "${txtCODE}    sudo dpkg -I ${JavaFxSBFile}${txtRST}"
+		echo "${txtCODE}    wget ${JavaFxSBDebUrl}${txtRST} # Simplified command"
+		echo "${txtCODE}    sudo dpkg -i ${JavaFxSBDebFile}${txtRST}"
 		
 		read -p "${txtQUES}Continue? (y/n) ${txtRST}"
 		if [ "${yn}" = "y" ]; then
-			oracle_download ${JavaFxSBUrl}
-			sudo dpkg -i ${TmpDir}/${JavaFxSBFile} # TODO: create function package_install
+			oracle_download ${JavaFxSBDebUrl}
+			sudo dpkg -i ${DirTmp}/${JavaFxSBDebFile} # TODO: create function package_install
 		fi
 	fi
 	
@@ -356,41 +389,48 @@ fi
 # Inside Tools: SDK Platform-tools + Build-tools (both selected by default)
 # Inside the last stable API: SDK Platform + one System Image (e.g. x86 Atom)
 
-echo -e "\n${txtSECT}Installing Android SDK for Linux..."
+echo -e "\n${txtSECT}Installation of Android SDK for Linux..."
 echo "--------------------------------------------${txtRST}"
 
 # Android SDK Installation
-if ! [ -d "${wksB4}/android-sdk-linux/" ]; then
+if ! [ -d "${DirWorkspace}/android-sdk-linux/" ]; then
 	read -p "${txtQUES}Do you want to install Android SDK? (y/n) ${txtRST}" yn
 	if [ "${yn}" = "y" ]; then
-		wget -P ${TmpDir} ${AndroidSdkUrl};
-		tar -zxvf ${TmpDir}/${AndroidSdkFile} -C ${wksB4}
-		${wksB4}/android-sdk-linux/tools/android 2>/dev/null
+		wget -P ${DirTmp} ${AndroidSdkUrl};
+		tar -zxvf ${DirTmp}/${AndroidSdkFile} -C ${DirWorkspace}
+		${DirWorkspace}/android-sdk-linux/tools/android 2>/dev/null
+
+		# Fix missing path when compiling with b4a
+		ln -sf ../build-tools/${ApiFolder}/lib ${DirWorkspace}/android-sdk-linux/platform-tools/lib
 	fi
-	
-	# Fix missing path when compiling with b4a
-	ln -sf ../build-tools/${ApiFolder}/lib ${wksB4}/android-sdk-linux/platform-tools/lib
-	
+
 else
 	echo "${txtPASS}Android SDK is already installed${txtRST}"
 
 fi
 
 # Adaptation for Android SDK (for Wine compatibility)
-if [ -d "${wksB4}/android-sdk-linux/tools/" ] && (! [ -f "${wksB4}/android-sdk-linux/platform-tools/adb.exe" ]); then
-	echo "echo OFF" > ${wksB4}/android-sdk-linux/tools/android.bat
-	echo "start /unix ${wksB4}/android-sdk-linux/tools/android avd" >> ${wksB4}/android-sdk-linux/tools/android.bat
-	wget -P ${TmpDir} -O ${TmpDir}/${AndroidSdkWineCompatFile} ${AndroidSdkWineCompatUrl};  # TODO: change file to sdk-B4.tar.gz ..?
-	tar -xzvf ${TmpDir}/${AndroidSdkWineCompatFile} -C ${wksB4}/android-sdk-linux
-else
-	echo "${txtPASS}Compatibility elements for Android SDK with Wine are already installed${txtRST}"
+if [ -d "${DirWorkspace}/android-sdk-linux/tools/" ]; then
+
+	if ! [ -f "${DirWorkspace}/android-sdk-linux/platform-tools/adb.exe" ]; then
+
+		echo "${txtINFO}Installing compatibility elements for Android SDK with Wine...${txtRST}"
+
+		echo "echo OFF" > ${DirWorkspace}/android-sdk-linux/tools/android.bat
+		echo "start /unix ${DirWorkspace}/android-sdk-linux/tools/android avd" >> ${DirWorkspace}/android-sdk-linux/tools/android.bat
+		wget -P ${DirTmp} -O ${DirTmp}/${AndroidSdkWineCompatFile} ${AndroidSdkWineCompatUrl};  # TODO: change file to sdk-B4.tar.gz ..?
+		tar -xzvf ${DirTmp}/${AndroidSdkWineCompatFile} -C ${DirWorkspace}/android-sdk-linux
+	else
+		echo "${txtPASS}Compatibility elements for Android SDK with Wine are already installed${txtRST}"
+	fi
 fi
+
 
 
 # 9 WINE INSTALLATION (LINUX)
 # ######################################################################
 
-echo -e "\n${txtSECT}Installing Wine for Linux..."
+echo -e "\n${txtSECT}Installation of Wine for Linux..."
 echo "--------------------------------------------${txtRST}"
 
 bin_exists wine ; wineFound=$?
@@ -424,11 +464,13 @@ if [ $wineFound -ne 0 -o $winetricksFound -ne 0 ]; then
 fi
 
 # Environment preparation for Wine (32 bits)
-if ! [ -d "${WineB4}" ]; then
-	# TODO: It needs to pause here
+if ! [ -d "${DirWine}" ]; then
+	
+	read -p "${txtINFO}We are going to configure wine folder now. ${̣txtQUES}Press a key to continue ${txtRST}"
+	
 	echo "${txtINFO}Initializing Wine's environment. . .${txtRST}"
-	WINEARCH=win32 WINEPREFIX=${WineB4} wine do_not_exists 2>/dev/null
-	WINEARCH=win32 WINEPREFIX=${WineB4} winetricks dotnet20
+	WINEARCH=win32 WINEPREFIX=${DirWine} wine do_not_exists 2>/dev/null
+	WINEARCH=win32 WINEPREFIX=${DirWine} winetricks dotnet20 2>/dev/null
 else
 	echo "${txtPASS}Environment for Wine 32 bits width dotnet20 is already installed${txtRST}"
 fi
@@ -440,17 +482,17 @@ fi
 # The only component that needs to be installed is the Development Tools
 # Don't install the Source Code nor the Public JRE
 
-echo -e "\n${txtSECT}Installing Java 1.7 for Windows 32bit. . ."
+echo -e "\n${txtSECT}Installation of Java 1.7 for Windows 32bit. . ."
 echo "--------------------------------------------${txtRST}"
 # NOTE: Java 1.8 gives error in installation
 #
 # <ORACLE>
 
-if ! [ -d "${WineB4}/drive_c/Program Files/Java/" ]; then
+if ! [ -d "${DirWine}/drive_c/Program Files/Java/" ]; then
 	read -p "${txtQUES}Do you want to install JDK for windows? (y/n) ${txtRST}" yn
 	if [ "${yn}" = "y" ]; then
 		oracle_download ${JdkWindowsUrl}
-		WINEARCH=win32 WINEPREFIX=${WineB4} wine ${TmpDir}/${JdkWindowsPack}
+		WINEARCH=win32 WINEPREFIX=${DirWine} wine ${DirTmp}/${JdkWindowsPack}
 	fi
 else
 	echo "${txtPASS}JDK for Windows is already installed${txtRST}"
@@ -462,10 +504,10 @@ fi
 
 # TODO: Test if it's ok launching it after installation
 
-echo -e "\n${txtSECT}Installing B4A for Windows 32bit..."
+echo -e "\n${txtSECT}Installation of B4A for Windows 32bit..."
 echo "--------------------------------------------${txtRST}"
 
-if [ -f "${WineB4}/drive_c/Program Files/Anywhere Software/Basic4android/Basic4android.exe" ]; then
+if [ -f "${DirWine}/drive_c/Program Files/Anywhere Software/Basic4android/Basic4android.exe" ]; then
 	echo "${txtPASS}B4A is already installed${txtRST}"
 	read -p "${txtQUES}Do you want to update B4A? (y/n) ${txtRST}" yn
 else
@@ -473,36 +515,37 @@ else
 fi
 
 if [ "${yn}" == "y" ]; then 
-	wget -P ${TmpDir} ${b4aURL}
-	WINEARCH=win32 WINEPREFIX=${WineB4} wine ${TmpDir}/${b4aFile} 2>/dev/null
+	wget -P ${DirTmp} ${b4aURL}
+	WINEARCH=win32 WINEPREFIX=${DirWine} wine ${DirTmp}/${b4aFile} 2>/dev/null
 	override_app_dlls Basic4android.exe gdiplus native
 	
 fi
 
-	B4A_desktop="B4A.desktop" # before: Basic4android.desktop	
-	if ! [ -f "${wksB4}/${B4A_desktop}" ]; then
-		echo "[Desktop Entry]" >${wksB4}/${B4A_desktop}
-		echo "Name=B4A" >>${wksB4}/${B4A_desktop}
-		echo "Exec=env WINEPREFIX="\"${WineB4}\"" wine C:\\\\\\\\windows\\\\\\\\command\\\\\\\\start.exe /Unix ${WineB4}/dosdevices/c:/users/Public/Start\\\\ Menu/Programs/Basic4android/Basic4android.lnk" >>${wksB4}/${B4A_desktop}
-		echo "Type=Application" >>${wksB4}/${B4A_desktop}
-		echo "StartupNotify=true" >>${wksB4}/${B4A_desktop}
-		echo "Path=${WineB4}/dosdevices/c:/Program Files/Anywhere Software/Basic4android" >>${wksB4}/${B4A_desktop}
-		echo "Icon=B5FB_Basic4android.0" >>${wksB4}/${B4A_desktop}
-		chmod +x ${wksB4}/${B4A_desktop}
-	else
-		echo "${txtPASS}Link for B4A already exists${txtRST}"
-	fi
+# App Link
+B4A_desktop="B4A.desktop" # before: Basic4android.desktop	
+if ! [ -f "${DirWorkspace}/${B4A_desktop}" ]; then
+	echo "[Desktop Entry]" >${DirWorkspace}/${B4A_desktop}
+	echo "Name=B4A" >>${DirWorkspace}/${B4A_desktop}
+	echo "Exec=env WINEPREFIX="\"${DirWine}\"" wine C:\\\\\\\\windows\\\\\\\\command\\\\\\\\start.exe /Unix ${DirWine}/dosdevices/c:/users/Public/Start\\\\ Menu/Programs/Basic4android/Basic4android.lnk" >>${DirWorkspace}/${B4A_desktop}
+	echo "Type=Application" >>${DirWorkspace}/${B4A_desktop}
+	echo "StartupNotify=true" >>${DirWorkspace}/${B4A_desktop}
+	echo "Path=${DirWine}/dosdevices/c:/Program Files/Anywhere Software/Basic4android" >>${DirWorkspace}/${B4A_desktop}
+	echo "Icon=B5FB_Basic4android.0" >>${DirWorkspace}/${B4A_desktop}
+	chmod +x ${DirWorkspace}/${B4A_desktop}
+else
+	echo "${txtPASS}Link for B4A already exists${txtRST}"
+fi
 
 
 # 12 B4J INSTALLATION (WINE)
 # ######################################################################
 
-echo -e "\n${txtSECT}Installing B4J for Windows 32bit..."
+echo -e "\n${txtSECT}Installation of B4J for Windows 32bit..."
 echo "--------------------------------------------${txtRST}"
 
 # TODO: Test if it's ok launching it after installation
 
-if [ -f "${WineB4}/drive_c/Program Files/Anywhere Software/B4J/B4J.exe" ]; then
+if [ -f "${DirWine}/drive_c/Program Files/Anywhere Software/B4J/B4J.exe" ]; then
 	echo "${txtPASS}B4J is already installed${txtRST}"
 	read -p "${txtQUES}Do you want to update B4J? (y/n) ${txtRST}" yn
 else
@@ -510,24 +553,38 @@ else
 fi
 
 if [ "${yn}" == "y" ]; then
-	wget -P ${TmpDir} ${b4jURL}
-	WINEARCH=win32 WINEPREFIX=${WineB4} wine ${TmpDir}/${b4jFile} 2>/dev/null
+	wget -P ${DirTmp} ${b4jURL}
+	WINEARCH=win32 WINEPREFIX=${DirWine} wine ${DirTmp}/${b4jFile} 2>/dev/null
 	override_app_dlls B4J.exe gdiplus native
-	
-fi
+
+	# App Link
 	B4J_desktop="B4J.desktop"	
-	if ! [ -f "${wksB4}/${B4J_desktop}" ]; then
-		echo "[Desktop Entry]" >${wksB4}/${B4J_desktop}
-		echo "Name=B4J" >>${wksB4}/${B4J_desktop}
-		echo "Exec=env WINEPREFIX="\"${WineB4}\"" wine C:\\\\\\\\windows\\\\\\\\command\\\\\\\\start.exe /Unix ${WineB4}/dosdevices/c:/users/Public/Start\\\\ Menu/Programs/B4J/B4J.lnk" >>${wksB4}/${B4J_desktop}
-		echo "Type=Application" >>${wksB4}/${B4J_desktop}
-		echo "StartupNotify=true" >>${wksB4}/${B4J_desktop}
-		echo "Path=${WineB4}/dosdevices/c:/Program Files/Anywhere Software/B4J" >>${wksB4}/${B4J_desktop}
-		echo "Icon=7BEB_B4J.0" >>${wksB4}/${B4J_desktop}
-		chmod +x ${wksB4}/${B4J_desktop}
+	if ! [ -f "${DirWorkspace}/${B4J_desktop}" ]; then
+		echo "${txtINFO}Creating link for B4J...${txtRST}"
+		
+		echo "[Desktop Entry]" >${DirWorkspace}/${B4J_desktop}
+		echo "Name=B4J" >>${DirWorkspace}/${B4J_desktop}
+		echo "Exec=env WINEPREFIX="\"${DirWine}\"" wine C:\\\\\\\\windows\\\\\\\\command\\\\\\\\start.exe /Unix ${DirWine}/dosdevices/c:/users/Public/Start\\\\ Menu/Programs/B4J/B4J.lnk" >>${DirWorkspace}/${B4J_desktop}
+		echo "Type=Application" >>${DirWorkspace}/${B4J_desktop}
+		echo "StartupNotify=true" >>${DirWorkspace}/${B4J_desktop}
+		echo "Path=${DirWine}/dosdevices/c:/Program Files/Anywhere Software/B4J" >>${DirWorkspace}/${B4J_desktop}
+		echo "Icon=7BEB_B4J.0" >>${DirWorkspace}/${B4J_desktop}
+		chmod +x ${DirWorkspace}/${B4J_desktop}
 	else
 		echo "${txtPASS}Link for B4J already exists${txtRST}"
 	fi
+
+	# B4J Bridge
+	if ! [ -f "${DirWorkspace}/tools/${B4JBridgeFile}" ]; then
+		echo "${txtINFO}Downloading B4J Bridge...${txtRST}"
+
+		wget -P ${DirTmp} ${B4JBridgeUrl}
+		cp ${DirTmp}/${B4JBridgeFile} ${DirTools}
+	else
+		echo "${txtPASS}B4J Bridge already exists under ${DirTools}${txtRST}"
+	fi
+
+fi
 
 
 # 13 CLEANUP & EXIT
@@ -540,8 +597,8 @@ echo "--------------------------------------------${txtRST}"
 
 read -p "${txtQUES}Do you want to delete the temporary downloaded files? (y/n) ${txtRST}" yn
 if [ "${yn}" = "y" ]; then
-	echo "${txtINFO}Deleting ${TmpDir} . . .${txtRST}"
-	rm -r ${TmpDir}
+	echo "${txtINFO}Deleting ${DirTmp} . . .${txtRST}"
+	rm -r ${DirTmp}
 fi
 
 
