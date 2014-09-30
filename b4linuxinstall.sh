@@ -224,36 +224,59 @@ JavaFxSBDebFile=${JavaFxSBDebUrl##*/}
 
 # Checks if a command is available
 # Params: $1=name
-bin_exists() {
+function bin_exists() {
 	command -v ${1} >/dev/null 2>&1
 }
 
 # Checks if a package is installed
 # Params: $1=Name
-package_exists() {
+function package_exists() {
 	
 	# <DPKG>
 	res=$( dpkg-query -l 2>/dev/null "${1}" | tail -1 | awk '{ print $1 }' )
 	[ "${res}" == "ii" ]
 }
 
+function wgetFilter() {
+# http://stackoverflow.com/a/4687912/940200
+	local flag=false c count cr=$'\r' nl=$'\n'
+	while IFS='' read -d '' -rn 1 c; do
+		if $flag; then
+			printf '%c' "$c"
+		else
+			if [[ $c != $cr && $c != $nl ]]; then
+				count=0
+			else
+				((count++))
+				if ((count > 1)); then
+					flag=true
+				fi
+			fi
+		fi
+	done
+}
+
 # Downloads a file from oracle.com and saves it to ${DirTmp}
 # Params: $1=URL
-oracle_download() {
+function oracle_download() {
 	wget --no-cookies --no-check-certificate --header "Cookie: oraclelicense=accept-securebackup-cookie" -P ${DirTmp} ${1}
+}
+
+function wget_download() {
+	wget --progress=bar:force -P ${DirTmp} ${1} 2>&1 | wgetFilter
 }
 
 
 # 4 WINE FUNCTIONS
 # ######################################################################
 
-init_winedir() {
+function init_winedir() {
 	Winedir=${1}
 	winTmpDirU="${Winedir}/dosdevices/c:/windows/temp"
 	winTmpDirW="C:\\windows\\Temp"
 }
 
-override_app_dlls() {
+function override_app_dlls() {
 # thank's to winetricks project :-)
 # example : w_override_app_dlls winword.exe riched20 native
 # options native builtin default
@@ -396,7 +419,7 @@ echo "--------------------------------------------${txtRST}"
 if ! [ -d "${DirWorkspace}/android-sdk-linux/" ]; then
 	read -p "${txtQUES}Do you want to install Android SDK? (y/n) ${txtRST}" yn
 	if [ "${yn}" = "y" ]; then
-		wget -P ${DirTmp} ${AndroidSdkUrl};
+		wget_download ${AndroidSdkUrl};
 		tar -zxvf ${DirTmp}/${AndroidSdkFile} -C ${DirWorkspace}
 		${DirWorkspace}/android-sdk-linux/tools/android 2>/dev/null
 
@@ -418,7 +441,7 @@ if [ -d "${DirWorkspace}/android-sdk-linux/tools/" ]; then
 
 		echo "echo OFF" > ${DirWorkspace}/android-sdk-linux/tools/android.bat
 		echo "start /unix ${DirWorkspace}/android-sdk-linux/tools/android avd" >> ${DirWorkspace}/android-sdk-linux/tools/android.bat
-		wget -P ${DirTmp} -O ${DirTmp}/${AndroidSdkWineCompatFile} ${AndroidSdkWineCompatUrl};  # TODO: change file to sdk-B4.tar.gz ..?
+		wget_download ${AndroidSdkWineCompatUrl};
 		tar -xzvf ${DirTmp}/${AndroidSdkWineCompatFile} -C ${DirWorkspace}/android-sdk-linux
 	else
 		echo "${txtPASS}Compatibility elements for Android SDK with Wine are already installed${txtRST}"
@@ -465,11 +488,13 @@ fi
 
 # Environment preparation for Wine (32 bits)
 if ! [ -d "${DirWine}" ]; then
-	
-	read -p "${txtINFO}We are going to configure wine folder now. ${̣txtQUES}Press a key to continue ${txtRST}"
+	echo -n "${txtINFO}We are going to configure wine folder now. ${txtRST}"
+	echo "${txtQUES}Press a key to continue.${txtRST}"
+	read
 	
 	echo "${txtINFO}Initializing Wine's environment. . .${txtRST}"
 	WINEARCH=win32 WINEPREFIX=${DirWine} wine do_not_exists 2>/dev/null
+	echo "${txtINFO}Installing .NET 2.0. . .${txtRST}"
 	WINEARCH=win32 WINEPREFIX=${DirWine} winetricks dotnet20 2>/dev/null
 else
 	echo "${txtPASS}Environment for Wine 32 bits width dotnet20 is already installed${txtRST}"
@@ -492,7 +517,7 @@ if ! [ -d "${DirWine}/drive_c/Program Files/Java/" ]; then
 	read -p "${txtQUES}Do you want to install JDK for windows? (y/n) ${txtRST}" yn
 	if [ "${yn}" = "y" ]; then
 		oracle_download ${JdkWindowsUrl}
-		WINEARCH=win32 WINEPREFIX=${DirWine} wine ${DirTmp}/${JdkWindowsPack}
+		WINEARCH=win32 WINEPREFIX=${DirWine} wine ${DirTmp}/${JdkWindowsPack} 2>/dev/null
 	fi
 else
 	echo "${txtPASS}JDK for Windows is already installed${txtRST}"
@@ -515,15 +540,12 @@ else
 fi
 
 if [ "${yn}" == "y" ]; then 
-	wget -P ${DirTmp} ${b4aURL}
+	wget_download ${b4aURL}
 	WINEARCH=win32 WINEPREFIX=${DirWine} wine ${DirTmp}/${b4aFile} 2>/dev/null
 	override_app_dlls Basic4android.exe gdiplus native
-	
-fi
 
-# App Link
-B4A_desktop="B4A.desktop" # before: Basic4android.desktop	
-if ! [ -f "${DirWorkspace}/${B4A_desktop}" ]; then
+	# App Link
+	B4A_desktop="B4A.desktop" # before: Basic4android.desktop	
 	echo "[Desktop Entry]" >${DirWorkspace}/${B4A_desktop}
 	echo "Name=B4A" >>${DirWorkspace}/${B4A_desktop}
 	echo "Exec=env WINEPREFIX="\"${DirWine}\"" wine C:\\\\\\\\windows\\\\\\\\command\\\\\\\\start.exe /Unix ${DirWine}/dosdevices/c:/users/Public/Start\\\\ Menu/Programs/Basic4android/Basic4android.lnk" >>${DirWorkspace}/${B4A_desktop}
@@ -532,8 +554,6 @@ if ! [ -f "${DirWorkspace}/${B4A_desktop}" ]; then
 	echo "Path=${DirWine}/dosdevices/c:/Program Files/Anywhere Software/Basic4android" >>${DirWorkspace}/${B4A_desktop}
 	echo "Icon=B5FB_Basic4android.0" >>${DirWorkspace}/${B4A_desktop}
 	chmod +x ${DirWorkspace}/${B4A_desktop}
-else
-	echo "${txtPASS}Link for B4A already exists${txtRST}"
 fi
 
 
@@ -553,37 +573,45 @@ else
 fi
 
 if [ "${yn}" == "y" ]; then
-	wget -P ${DirTmp} ${b4jURL}
+	wget_download ${b4jURL}
 	WINEARCH=win32 WINEPREFIX=${DirWine} wine ${DirTmp}/${b4jFile} 2>/dev/null
 	override_app_dlls B4J.exe gdiplus native
 
 	# App Link
-	B4J_desktop="B4J.desktop"	
-	if ! [ -f "${DirWorkspace}/${B4J_desktop}" ]; then
-		echo "${txtINFO}Creating link for B4J...${txtRST}"
-		
-		echo "[Desktop Entry]" >${DirWorkspace}/${B4J_desktop}
-		echo "Name=B4J" >>${DirWorkspace}/${B4J_desktop}
-		echo "Exec=env WINEPREFIX="\"${DirWine}\"" wine C:\\\\\\\\windows\\\\\\\\command\\\\\\\\start.exe /Unix ${DirWine}/dosdevices/c:/users/Public/Start\\\\ Menu/Programs/B4J/B4J.lnk" >>${DirWorkspace}/${B4J_desktop}
-		echo "Type=Application" >>${DirWorkspace}/${B4J_desktop}
-		echo "StartupNotify=true" >>${DirWorkspace}/${B4J_desktop}
-		echo "Path=${DirWine}/dosdevices/c:/Program Files/Anywhere Software/B4J" >>${DirWorkspace}/${B4J_desktop}
-		echo "Icon=7BEB_B4J.0" >>${DirWorkspace}/${B4J_desktop}
-		chmod +x ${DirWorkspace}/${B4J_desktop}
-	else
-		echo "${txtPASS}Link for B4J already exists${txtRST}"
-	fi
+	B4J_desktop="B4J.desktop"
+	echo "${txtINFO}Creating link for B4J...${txtRST}"
+	
+	echo "[Desktop Entry]" >${DirWorkspace}/${B4J_desktop}
+	echo "Name=B4J" >>${DirWorkspace}/${B4J_desktop}
+	echo "Exec=env WINEPREFIX="\"${DirWine}\"" wine C:\\\\\\\\windows\\\\\\\\command\\\\\\\\start.exe /Unix ${DirWine}/dosdevices/c:/users/Public/Start\\\\ Menu/Programs/B4J/B4J.lnk" >>${DirWorkspace}/${B4J_desktop}
+	echo "Type=Application" >>${DirWorkspace}/${B4J_desktop}
+	echo "StartupNotify=true" >>${DirWorkspace}/${B4J_desktop}
+	echo "Path=${DirWine}/dosdevices/c:/Program Files/Anywhere Software/B4J" >>${DirWorkspace}/${B4J_desktop}
+	echo "Icon=7BEB_B4J.0" >>${DirWorkspace}/${B4J_desktop}
+	chmod +x ${DirWorkspace}/${B4J_desktop}
 
 	# B4J Bridge
 	if ! [ -f "${DirWorkspace}/tools/${B4JBridgeFile}" ]; then
 		echo "${txtINFO}Downloading B4J Bridge...${txtRST}"
 
-		wget -P ${DirTmp} ${B4JBridgeUrl}
+		wget_download ${B4JBridgeUrl}
 		cp ${DirTmp}/${B4JBridgeFile} ${DirTools}
 	else
-		echo "${txtPASS}B4J Bridge already exists under ${DirTools}${txtRST}"
+		echo "${txtPASS}${B4JBridgeFile} already exists under ${DirTools}${txtRST}"
 	fi
 
+	# B4J Bridge Link
+	B4JBridge_desktop="B4JBridge.desktop"
+	echo "${txtINFO}Creating link for B4J Bridge...${txtRST}"
+	
+	echo "[Desktop Entry]" >${DirWorkspace}/${B4JBridge_desktop}
+	echo "Name=B4J Bridge" >>${DirWorkspace}/${B4JBridge_desktop}
+	echo "Exec=x-terminal-emulator -t B4JBridge -e java -jar ${DirTools}/b4j-bridge.jar" >>${DirWorkspace}/${B4JBridge_desktop}
+	echo "Type=Application" >>${DirWorkspace}/${B4JBridge_desktop}
+	echo "StartupNotify=true" >>${DirWorkspace}/${B4JBridge_desktop}
+	echo "Path=${DirWine}/dosdevices/c:/Program Files/Anywhere Software/B4J" >>${DirWorkspace}/${B4JBridge_desktop}
+	echo "Icon=terminal" >>${DirWorkspace}/${B4JBridge_desktop}
+	chmod +x ${DirWorkspace}/${B4JBridge_desktop}	
 fi
 
 
