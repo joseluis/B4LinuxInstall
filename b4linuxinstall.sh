@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# B4LinuxInstall (version 20140930) by joseLuís
+# B4LinuxInstall (version 20141122) by joseLuís
 # ----------------------------------------------------------------------
 # A bash script for installing B4* RAD tools in Linux systems
 #
@@ -144,11 +144,11 @@ DirWorkspace=${HOME}/workspace_b4
 # ANDROID & WINE
 # ----------------------------------------------------------------------
 
-# Android SDK for Linux 32) <UPDATE>
+# Android SDK for Linux 32)
 
 AndroidSdkUrl=http://dl.google.com/android/android-sdk_r23.0.2-linux.tgz
 AndroidSdkFile=${AndroidSdkUrl##*/}
-AndroidSdkApi="20.0.0" # The folder named after the api version installed. Used to fix a path.
+#AndroidSdkApiFolder="21.1.1" # The folder named after the api version installed. Used to fix a path. [UPDATE]20141122 no longer needed?
 
 # Compatibility elements for the android SDK and Wine
 
@@ -162,22 +162,13 @@ WinePkg="wine1.6" # stable version, preferred
 # ORACLE JAVA
 # ----------------------------------------------------------------------
 #
-# WARNING: Please make sure to update the MD5SUM when updating a file link
-#
-# Checksum for Java SE 7u67 binaries
-# https://www.oracle.com/webfolder/s/digest/java-se-binaries-checksum-1956892.html
-#
-# Downloads for Java SE 8
+# http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html
 # http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
-# Checksum for Java SE 8u20 binaries
-# https://www.oracle.com/webfolder/s/digest/javase8-binaries-checksum-2133161.html
 
 # JDK for Windows 32bit <UPDATE>
 
-JdkWindowsUrl=http://download.oracle.com/otn-pub/java/jdk/7u67-b01/jdk-7u67-windows-i586.exe # version 1.7
-JdkWindowsMd5=dbe6f185f836cd43221827eae1dfff79
+JdkWindowsUrl=http://download.oracle.com/otn-pub/java/jdk/7u71-b14/jdk-7u71-windows-i586.exe # version 1.7
 #JdkWindowsUrl=http://download.oracle.com/otn-pub/java/jdk/8u20-b26/jdk-8u20-windows-i586.exe # version 1.8 fails installation on wine
-#JdkWindowsMd5=a32589ba83f3aa5a8b1737339604b609
 JdkWindowsPack=${JdkWindowsUrl##*/}
 
 # JDK for Linux <UPDATE>
@@ -185,19 +176,15 @@ JdkWindowsPack=${JdkWindowsUrl##*/}
 case ${SObits} in
 	32)
 	# rpm
-	JdkLinuxRpmUrl="http://download.oracle.com/otn-pub/java/jdk/8u20-b26/jdk-8u20-linux-i586.rpm"
-	JdkLinuxRpmMd5="082330b7c5652caa8fa6f49016b940ea"
+	JdkLinuxRpmUrl="http://download.oracle.com/otn-pub/java/jdk/8u25-b17/jdk-8u25-linux-i586.rpm"
 	# tgz
-	JdkLinuxTgzUrl="http://download.oracle.com/otn-pub/java/jdk/8u20-b26/jdk-8u20-linux-i586.tar.gz"
-	JdkLinuxTgzMd5="5dafdef064e18468f21c65051a6918d7"
+	JdkLinuxTgzUrl="http://download.oracle.com/otn-pub/java/jdk/8u25-b17/jdk-8u25-linux-i586.tar.gz"
 	;;
 	64)
 	# rpm
-	JdkLinuxRpmUrl="http://download.oracle.com/otn-pub/java/jdk/8u20-b26/jdk-8u20-linux-x64.rpm"
-	JdkLinuxRpmMd5="98fc97402e9f37610d172953b64f2c8a"
+	JdkLinuxRpmUrl="http://download.oracle.com/otn-pub/java/jdk/8u25-b17/jdk-8u25-linux-x64.rpm"
 	# tgz
-	JdkLinuxTgzUrl="http://download.oracle.com/otn-pub/java/jdk/8u20-b26/jdk-8u20-linux-x64.tar.gz"
-	JdkLinuxTgzMd5="ec7f89dc3697b402e2c851d0488f6299"
+	JdkLinuxTgzUrl="http://download.oracle.com/otn-pub/java/jdk/8u25-b17/jdk-8u25-linux-x64.tar.gz"
 	;;
 esac
 JdkLinuxDebFile=${JdkLinuxDebUrl##*/}
@@ -209,11 +196,9 @@ JdkLinuxTgzFile=${JdkLinuxTgzUrl##*/}
 case ${SObits} in
 	32)
 	JavaFxSBDebUrl=http://download.oracle.com/otn-pub/java/javafx_scenebuilder/2.0-b20/javafx_scenebuilder-2_0-linux-i586.deb
-	JavaFxSBDebMd5=43ddb9463a784c23a8691932294a3db1
 	;;
 	64)
 	JavaFxSBDebUrl=http://download.oracle.com/otn-pub/java/javafx_scenebuilder/2.0-b20/javafx_scenebuilder-2_0-linux-x64.deb
-	JavaFxSBDebMd5=2f3028d4164a09b0a20ee7ea7b942187
 	;;
 esac
 JavaFxSBDebFile=${JavaFxSBDebUrl##*/}
@@ -423,8 +408,8 @@ if ! [ -d "${DirWorkspace}/android-sdk-linux/" ]; then
 		tar -zxvf ${DirTmp}/${AndroidSdkFile} -C ${DirWorkspace}
 		${DirWorkspace}/android-sdk-linux/tools/android 2>/dev/null
 
-		# Fix missing path when compiling with b4a
-		ln -sf ../build-tools/${ApiFolder}/lib ${DirWorkspace}/android-sdk-linux/platform-tools/lib
+		# Fix missing path when compiling with b4a ([UPDATE] 20141122 I believe this is not longer needed)
+		#ln -sf ../build-tools/${AndroidSdkApiFolder}/lib ${DirWorkspace}/android-sdk-linux/platform-tools/lib
 	fi
 
 else
