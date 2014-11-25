@@ -1,7 +1,7 @@
 B4LinuxInstall
 ==============
 
-Install b4x.com RAD tools (B4J, B4A...) in Linux systems like Ubuntu
+Install [b4x.com](b4x.com) RAD tools (B4J, B4A...) in Linux systems like Ubuntu
 
 Currently only Ubuntu is supported
 
