@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# B4LinuxInstall (version 20141122) by joseLuís
+# B4LinuxInstall (version 20141125) by joseLuís
 # ----------------------------------------------------------------------
 # A bash script for installing B4* RAD tools in Linux systems
 #
@@ -329,7 +329,7 @@ else
 	if [ "${yn}" = "y" ]; then
 				
 		# Check for the package
-		if ! [ package_exists oracle-java8-installer ]; then
+		if ! package_exists oracle-java8-installer; then
 		
 			# <UBUNTU> add the PPA
 			echo "${txtINFO}We are going to add the java8 ppa repository:${txtRST}"
