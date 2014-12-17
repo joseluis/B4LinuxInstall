@@ -368,7 +368,7 @@ if ! package_exists scenebuilder; then # TODO: make a deeper check
 
 # Package to download, depending on architecture and package manager
 		
-	read -p "${txtQUES}You need Oracle Java FX Scenebuilder. Do you want to install it now? (y/n) ${txtRST}" yn
+	read -p "${txtQUES}You need Oracle Java FX Scenebuilder only for B4J. Do you want to install it now? (y/n) ${txtRST}" yn
 
 	if [ "${yn}" = "y" ]; then
 			
