@@ -145,9 +145,8 @@ DirWorkspace=${HOME}/workspace_b4
 
 # Android SDK for Linux 32)
 
-AndroidSdkUrl=http://dl.google.com/android/android-sdk_r23.0.2-linux.tgz
+AndroidSdkUrl=http://dl.google.com/android/android-sdk_r24.0.2-linux.tgz
 AndroidSdkFile=${AndroidSdkUrl##*/}
-#AndroidSdkApiFolder="21.1.1" # The folder named after the api version installed. Used to fix a path. [UPDATE]20141122 no longer needed?
 
 # Compatibility elements for the android SDK and Wine
 
