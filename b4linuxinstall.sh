@@ -1,16 +1,14 @@
 #!/bin/bash
 #
-# B4LinuxInstall (version 20141125) by joseLuís
+# B4LinuxInstall (version 20150115) by joseLuís
 # ----------------------------------------------------------------------
-# A bash script for installing B4* RAD tools in Linux systems
+# A bash script for installing www.b4x.com RAD tools in Linux systems
 #
 #
 # LINKS
 # ######################################################################
 # repository:		https://github.com/joseluis/B4LinuxInstall
-# forum thread:		http://basic4ppc.com/android/forum/threads/45092/
-# B4A:			http://basic4ppc.com/android/b4j.html
-# B4J:			http://basic4ppc.com/android/downloads.html
+# forum thread:		http://www.b4x.com/android/forum/threads/45092/
 #
 #
 # IMPORTANT INSTRUCTIONS
@@ -19,6 +17,7 @@
 # version of B4A, which you should receive by email after you bought it.
 # e.g.:
 #		./b4linuxinstall.sh http://theurl.to/the/fullversion.exe
+#
 #
 # LICENSE
 # ######################################################################
@@ -101,11 +100,11 @@ fi
 [ $(uname -m) == "x86_64" ] && SObits="64" || SObits="32"
 
 # B4J download link
-b4jURL=http://www.basic4ppc.com/b4j/files/B4J.exe
+b4jURL=http://www.b4x.com/b4j/files/B4J.exe
 b4jFile=${b4jURL##*/}
 
 # B4A download link
-b4aURL=http://www.basic4ppc.com/android/files/b4a-trial.exe # trial version
+b4aURL=http://www.b4x.com/android/files/b4a-trial.exe # trial version
 b4aFullUrl=${1}
 if [ "${b4aFullUrl}" == "" ]; then
 	echo "${txtWARN}Warning: No URL supplied. This script will download the ${txtINFO}TRIAL${txtRST}${txtWARN} version of B4A."
@@ -131,7 +130,7 @@ else
 fi
 b4aFile=${b4aURL##*/}
 
-B4JBridgeUrl=http://www.basic4ppc.com/b4j/files/b4j-bridge.jar
+B4JBridgeUrl=http://www.b4x.com/b4j/files/b4j-bridge.jar
 B4JBridgeFile=${B4JBridgeUrl##*/}
 
 
