@@ -1,22 +1,27 @@
 #!/bin/bash
 #
-# B4LinuxInstall (version 20150115) by joseLuís
+# B4LinuxInstall (version 20150117) by joseLuís
 # ----------------------------------------------------------------------
 # A bash script for installing www.b4x.com RAD tools in Linux systems
 #
 #
 # LINKS
 # ######################################################################
-# repository:		https://github.com/joseluis/B4LinuxInstall
-# forum thread:		http://www.b4x.com/android/forum/threads/45092/
+# repository:   https://github.com/joseluis/B4LinuxInstall
+# forum thread: http://www.b4x.com/android/forum/threads/45092/
 #
 #
 # IMPORTANT INSTRUCTIONS
 # ######################################################################
-# - You can pass this script as the first parameter, the URL of the full
-# version of B4A, which you should receive by email after you bought it.
-# e.g.:
-#		./b4linuxinstall.sh http://theurl.to/the/fullversion.exe
+# You can download the full version of B4A and B4I and put them in the
+# same directory of B4LinuxInstall. The script will find them and ask
+# you if you want to install them. E.g.:
+#
+#	$ ls
+#	  b4i-beta_18.exe b4a-4.0.0.exe
+#
+#	$ ./b4linuxinstall.sh
+#	  ...
 #
 #
 # LICENSE
@@ -50,15 +55,17 @@
 # DISCLAIMER
 # ######################################################################
 # This script is not officially supported nor endorsed by Anywhere Software
-# in any way, nor do I work for Anywhere Software.
+# in any way, nor do I work for Anywhere Software. I am not responsible
+# in any way for any damages this script could cause in your system. You
+# are responsible to ensure the safety of it before running it.
 # 
 #
 # THANKS TO
 # ######################################################################
 # - Zolive33 (Oliver MARÉ) for creating the script B4A_Installer_en,
-#	from which B4LinuxInstall is built upon and tries to improve.
+#   from which B4LinuxInstall is built upon and tries to improve.
 # - Anywhere Software (Erel Uziel) for creating the fantastic suite of
-#	Rapid Application Development tools B4J, B4A and B4I.
+#   Rapid Application Development tools B4J, B4A and B4I.
 #
 
 
@@ -66,24 +73,24 @@
 # ######################################################################
 
 # Text color variables
-txtred=$(tput setaf 1)		# Color Red
-txtgre=$(tput setaf 2)		# Color Green
-txtyel=$(tput setaf 3)		# Color Yellow
-txtblu=$(tput setaf 4)		# Color Blue
-txtmag=$(tput setaf 5)		# Color Magenta
-txtcya=$(tput setaf 6)		# Color Cyan
-txtwhi=$(tput setaf 7)		# Color White
-txtbld=$(tput bold)		# Style Bold
-txtund=$(tput sgr 0 1)		# Style Underline
-txtRST=$(tput sgr0)		# Style Reset
+txtred=$(tput setaf 1)     # Color Red
+txtgre=$(tput setaf 2)     # Color Green
+txtyel=$(tput setaf 3)     # Color Yellow
+txtblu=$(tput setaf 4)     # Color Blue
+txtmag=$(tput setaf 5)     # Color Magenta
+txtcya=$(tput setaf 6)     # Color Cyan
+txtwhi=$(tput setaf 7)     # Color White
+txtbld=$(tput bold)        # Style Bold
+txtund=$(tput sgr 0 1)     # Style Underline
+txtRST=$(tput sgr0)        # Style Reset
 
-txtSECT=${txtwht}${txtbld}	# Section
-txtINFO=${txtwhi}		# Info
-txtPASS=${txtgre}		# Passed
-txtWARN=${txtyel}		# Warning
-txtERR=${txtred}		# Error
-txtQUES=${txtmag}		# Question
-txtCODE=${txtcya}		# Code
+txtSECT=${txtwht}${txtbld} # Section
+txtINFO=${txtwhi}          # Info
+txtPASS=${txtgre}          # Passed
+txtWARN=${txtyel}          # Warning
+txtERR=${txtred}           # Error
+txtQUES=${txtmag}          # Question
+txtCODE=${txtcya}          # Code
 
 # Script permissions
 chmod 770 "${0}"
@@ -103,31 +110,8 @@ fi
 b4jURL=http://www.b4x.com/b4j/files/B4J.exe
 b4jFile=${b4jURL##*/}
 
-# B4A download link
-b4aURL=http://www.b4x.com/android/files/b4a-trial.exe # trial version
-b4aFullUrl=${1}
-if [ "${b4aFullUrl}" == "" ]; then
-	echo "${txtWARN}Warning: No URL supplied. This script will download the ${txtINFO}TRIAL${txtRST}${txtWARN} version of B4A."
-	read -p "${txtQUES}Continue? (y/n) ${txtRST}" yn
-	if [ "${yn}" != "y" ]; then
-		echo -e "${txtINFO}\nIf you want to install the full version of B4A, run the script with a parameter${txtRST}"
-		echo -e "${txtINFO}containing the download link that you received after buying the software. e.g.:${txtRST}"
-		echo -e "${txtCODE}\t${0} http://theurl.to/the/fullversion.exe${txtRST}"
-		exit
-	fi
-else
-	regex='(https?|ftp|file)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]'
-	if [[ "${b4aFullUrl}" =~ ${regex} ]]; then
-		b4aURL="${b4aFullUrl}" # use the 1st parameter as the full version
-	else
-		echo "${txtWARN}Warning: the first parameter ${txtRST}${txtERROR}${b4aFullUrl}${txtRST}${txtWARN} is not a valid URL."
-		echo "This script will download the ${txtINFO}TRIAL${txtRST}${txtWARN} version of B4A instead.${txtRST}"
-		read -p "${txtQUES}Continue? (y/n) ${txtRST}" yn
-		if [ "${yn}" != "y" ]; then
-			exit
-		fi
-	fi
-fi
+# B4A download link (trial version)
+b4aURL=http://www.b4x.com/android/files/b4a-trial.exe
 b4aFile=${b4aURL##*/}
 
 B4JBridgeUrl=http://www.b4x.com/b4j/files/b4j-bridge.jar
@@ -214,7 +198,7 @@ function bin_exists() {
 # Checks if a package is installed
 # Params: $1=Name
 function package_exists() {
-	
+
 	# <DPKG>
 	res=$( dpkg-query -l 2>/dev/null "${1}" | tail -1 | awk '{ print $1 }' )
 	[ "${res}" == "ii" ]
@@ -322,10 +306,10 @@ fi
 # TODO: make debian compatible
 if [ "${javaBigVersion}" == "1.8" ]; then
 	echo "${txtPASS}You seem to have java ${javaBigVersion} already installed.${txtRST}"
-else	
+else
 	read -p "${txtQUES}Oracle Java version 1.8 is a requirement for JavaFX Scenebuilder and B4J. Do you want to install Java now? (y/n) ${txtRST}" yn
 	if [ "${yn}" = "y" ]; then
-				
+		
 		# Check for the package
 		if ! package_exists oracle-java8-installer; then
 		
@@ -412,11 +396,11 @@ if ! [ -d "${DirWorkspace}/android-sdk-linux/" ]; then
 
 else
 	echo "${txtPASS}Android SDK is already installed${txtRST}"
-
+	yn="n"
 fi
 
 # Adaptation for Android SDK (for Wine compatibility)
-if [ -d "${DirWorkspace}/android-sdk-linux/tools/" ]; then
+if [ -d "${DirWorkspace}/android-sdk-linux/tools/" ] && [ ${yn} == "y" ]; then
 
 	if ! [ -f "${DirWorkspace}/android-sdk-linux/platform-tools/adb.exe" ]; then
 
@@ -510,16 +494,27 @@ fi
 # 11 B4A INSTALLATION (WINE)
 # ######################################################################
 
-# TODO: Test if it's ok launching it after installation
-
 echo -e "\n${txtSECT}Installation of B4A for Windows 32bit..."
 echo "--------------------------------------------${txtRST}"
 
+# Detect B4A installer in current dir
+INSTALLER=$(ls *[Bb]4[Aa]*.exe 2>/dev/null | head -1) # It only detects the first match
+
+# Detect if B4A is already installed
 if [ -f "${DirWine}/drive_c/Program Files/Anywhere Software/Basic4android/Basic4android.exe" ]; then
 	echo "${txtPASS}B4A is already installed${txtRST}"
-	read -p "${txtQUES}Do you want to update B4A? (y/n) ${txtRST}" yn
+    TextUpdateInstall="update"
 else
-	read -p "${txtQUES}Do you want to install B4A? (y/n) ${txtRST}" yn
+	TextUpdateInstall="install"
+fi
+
+# Ask to install
+if [ -f "${INSTALLER}" ]; then
+    echo "${txtINFO}Found B4A installer file: '${INSTALLER}'.${txtRST}"
+	read -p "${txtQUES}Do you want to ${TextUpdateInstall} B4A using this file? (y/n) ${txtRST}" yn
+else
+	echo "${txtWARN}Can't find B4A installer file. If you want to ${TextUpdateInstall} it, download the installer in this directory.${txtRST}"
+    yn="n"
 fi
 
 if [ "${yn}" == "y" ]; then 
@@ -545,8 +540,6 @@ fi
 
 echo -e "\n${txtSECT}Installation of B4J for Windows 32bit..."
 echo "--------------------------------------------${txtRST}"
-
-# TODO: Test if it's ok launching it after installation
 
 if [ -f "${DirWine}/drive_c/Program Files/Anywhere Software/B4J/B4J.exe" ]; then
 	echo "${txtPASS}B4J is already installed${txtRST}"
@@ -594,11 +587,56 @@ if [ "${yn}" == "y" ]; then
 	echo "StartupNotify=true" >>${DirWorkspace}/${B4JBridge_desktop}
 	echo "Path=${DirWine}/dosdevices/c:/Program Files/Anywhere Software/B4J" >>${DirWorkspace}/${B4JBridge_desktop}
 	echo "Icon=terminal" >>${DirWorkspace}/${B4JBridge_desktop}
-	chmod +x ${DirWorkspace}/${B4JBridge_desktop}	
+	chmod +x ${DirWorkspace}/${B4JBridge_desktop}
 fi
 
 
-# 13 CLEANUP & EXIT
+# 13 B4i INSTALLATION (WINE)
+# ######################################################################
+
+echo -e "\n${txtSECT}Installation of B4i for Windows 32bit..."
+echo "--------------------------------------------${txtRST}"
+
+# Detect B4i install erin current dir
+INSTALLER=$(ls *[Bb]4[Ii]*.exe 2>/dev/null | head -1) # It only detects the first match
+
+# Detect if B4i is already installed
+if [ -f "${DirWine}/drive_c/Program Files/Anywhere Software/B4i/B4i.exe" ]; then
+	echo -e "${txtPASS}B4i is already installed${txtRST}"
+	TextUpdateInstall="update"
+else
+	TextUpdateInstall="install"
+fi
+
+# Ask to install
+if [ -f "${INSTALLER}" ]; then
+	echo "${txtINFO}Found B4i installer file: '${INSTALLER}'.${txtRST}"
+	read -p "${txtQUES}Do you want to ${TextUpdateInstall} B4i using this file? (y/n) ${txtRST}" yn
+else
+	echo "${txtWARN}Can't find B4i installer file. If you want to ${TextUpdateInstall} it, download the installer in this directory.${txtRST}"
+	yn="n"
+fi
+
+if [ "${yn}" == "y" ]; then
+	WINEARCH=win32 WINEPREFIX=${DirWine} wine ${INSTALLER} 2>/dev/null
+	override_app_dlls B4i.exe gdiplus native
+
+	# App Link
+	B4i_desktop="B4i.desktop"
+	echo "${txtINFO}Creating link for B4i...${txtRST}"
+	
+	echo "[Desktop Entry]" >${DirWorkspace}/${B4i_desktop}
+	echo "Name=B4i" >>${DirWorkspace}/${B4i_desktop}
+	echo "Exec=env WINEPREFIX="\"${DirWine}\"" wine C:\\\\\\\\windows\\\\\\\\command\\\\\\\\start.exe /Unix ${DirWine}/dosdevices/c:/users/Public/Start\\\\ Menu/Programs/B4i/B4i.lnk" >>${DirWorkspace}/${B4i_desktop}
+	echo "Type=Application" >>${DirWorkspace}/${B4i_desktop}
+	echo "StartupNotify=true" >>${DirWorkspace}/${B4i_desktop}
+	echo "Path=${DirWine}/dosdevices/c:/Program Files/Anywhere Software/B4i" >>${DirWorkspace}/${B4i_desktop}
+	echo "Icon=8DA3_B4i.0" >>${DirWorkspace}/${B4i_desktop}
+	chmod +x ${DirWorkspace}/${B4i_desktop}
+fi
+
+
+# 14 CLEANUP & EXIT
 # ######################################################################
 
 # TODO: Make this an option in the menu. Show size.
