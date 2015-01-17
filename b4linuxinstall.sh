@@ -13,14 +13,14 @@
 #
 # IMPORTANT INSTRUCTIONS
 # ######################################################################
-# You can download the full version of B4A and B4I and put them in the
+# You can download the installers for B4A and B4i and put them in the
 # same directory of B4LinuxInstall. The script will find them and ask
 # you if you want to install them. E.g.:
 #
 #	$ ls
-#	  b4i-beta_18.exe b4a-4.0.0.exe
+#	  b4i-beta_18.exe b4a-trial.exe
 #
-#	$ ./b4linuxinstall.sh
+#	$ bash ./b4linuxinstall.sh
 #	  ...
 #
 #
@@ -66,7 +66,7 @@
 # - Zolive33 (Oliver MARÉ) for creating the script B4A_Installer_en,
 #   from which B4LinuxInstall is built upon and tries to improve.
 # - Anywhere Software (Erel Uziel) for creating the fantastic suite of
-#   Rapid Application Development tools B4J, B4A and B4I.
+#   Rapid Application Development tools B4J, B4A and B4i.
 #
 
 
@@ -107,13 +107,9 @@ fi
 # 32bit or 64bit OS
 [ $(uname -m) == "x86_64" ] && SObits="64" || SObits="32"
 
-# B4J download link
+# B4J download links
 b4jURL=http://www.b4x.com/b4j/files/B4J.exe
 b4jFile=${b4jURL##*/}
-
-# B4A download link (trial version)
-b4aURL=http://www.b4x.com/android/files/b4a-trial.exe
-b4aFile=${b4aURL##*/}
 
 B4JBridgeUrl=http://www.b4x.com/b4j/files/b4j-bridge.jar
 B4JBridgeFile=${B4JBridgeUrl##*/}
@@ -390,9 +386,6 @@ if ! [ -d "${DirWorkspace}/android-sdk-linux/" ]; then
 		wget_download ${AndroidSdkUrl};
 		tar -zxvf ${DirTmp}/${AndroidSdkFile} -C ${DirWorkspace}
 		${DirWorkspace}/android-sdk-linux/tools/android 2>/dev/null
-
-		# Fix missing path when compiling with b4a ([UPDATE] 20141122 I believe this is not longer needed)
-		#ln -sf ../build-tools/${AndroidSdkApiFolder}/lib ${DirWorkspace}/android-sdk-linux/platform-tools/lib
 	fi
 
 else
@@ -520,7 +513,7 @@ fi
 
 if [ "${yn}" == "y" ]; then 
 	wget_download ${b4aURL}
-	WINEARCH=win32 WINEPREFIX=${DirWine} wine ${DirTmp}/${b4aFile} 2>/dev/null
+	WINEARCH=win32 WINEPREFIX=${DirWine} wine ${INSTALLER} 2>/dev/null
 	override_app_dlls Basic4android.exe gdiplus native
 
 	# App Link
