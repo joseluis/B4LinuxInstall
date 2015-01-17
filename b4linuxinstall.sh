@@ -28,7 +28,7 @@
 # ######################################################################
 # The MIT License (MIT)
 #
-# Copyright (c) 2014 José Luis Cruz
+# Copyright (c) 2015 José Luis Cruz
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -56,8 +56,9 @@
 # ######################################################################
 # This script is not officially supported nor endorsed by Anywhere Software
 # in any way, nor do I work for Anywhere Software. I am not responsible
-# in any way for any damages this script could cause in your system. You
-# are responsible to ensure the safety of it before running it.
+# for any damages this script could cause to your system. I've been very
+# careful to make it safe so there shouldn't be any problems, but
+# ultimately you are responsible to ensure its safety before executing it.
 # 
 #
 # THANKS TO
