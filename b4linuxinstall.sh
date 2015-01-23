@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# B4LinuxInstall (version 20150117) by joseLuís
+# B4LinuxInstall (version 20150123) by joseLuís
 # ----------------------------------------------------------------------
 # A bash script for installing www.b4x.com RAD tools in Linux systems
 #
@@ -18,7 +18,7 @@
 # you if you want to install them. E.g.:
 #
 #	$ ls
-#	  b4i-beta_18.exe b4a-trial.exe
+#	  b4i-beta_18.exe b4a-trial.exe b4linuxinstall.sh
 #
 #	$ bash ./b4linuxinstall.sh
 #	  ...
@@ -146,8 +146,8 @@ WinePkg="wine1.6" # stable version, preferred
 
 # JDK for Windows 32bit <UPDATE>
 
-JdkWindowsUrl=http://download.oracle.com/otn-pub/java/jdk/7u71-b14/jdk-7u71-windows-i586.exe # version 1.7
-#JdkWindowsUrl=http://download.oracle.com/otn-pub/java/jdk/8u20-b26/jdk-8u20-windows-i586.exe # version 1.8 fails installation on wine
+JdkWindowsUrl=http://download.oracle.com/otn-pub/java/jdk/7u75-b13/jdk-7u75-windows-i586.exe # version 1.7
+#JdkWindowsUrl=http://download.oracle.com/otn-pub/java/jdk/8u31-b13/jdk-8u31-windows-i586.exe # version 1.8 fails installation on wine
 JdkWindowsPack=${JdkWindowsUrl##*/}
 
 # JDK for Linux <UPDATE>
@@ -155,15 +155,15 @@ JdkWindowsPack=${JdkWindowsUrl##*/}
 case ${SObits} in
 	32)
 	# rpm
-	JdkLinuxRpmUrl="http://download.oracle.com/otn-pub/java/jdk/8u25-b17/jdk-8u25-linux-i586.rpm"
+	JdkLinuxRpmUrl="http://download.oracle.com/otn-pub/java/jdk/8u31-b13/jdk-8u31-linux-i586.rpm"
 	# tgz
-	JdkLinuxTgzUrl="http://download.oracle.com/otn-pub/java/jdk/8u25-b17/jdk-8u25-linux-i586.tar.gz"
+	JdkLinuxTgzUrl="http://download.oracle.com/otn-pub/java/jdk/8u31-b13/jdk-8u31-linux-i586.tar.gz"
 	;;
 	64)
 	# rpm
-	JdkLinuxRpmUrl="http://download.oracle.com/otn-pub/java/jdk/8u25-b17/jdk-8u25-linux-x64.rpm"
+	JdkLinuxRpmUrl="http://download.oracle.com/otn-pub/java/jdk/8u31-b13/jdk-8u31-linux-x64.rpm"
 	# tgz
-	JdkLinuxTgzUrl="http://download.oracle.com/otn-pub/java/jdk/8u25-b17/jdk-8u25-linux-x64.tar.gz"
+	JdkLinuxTgzUrl="http://download.oracle.com/otn-pub/java/jdk/8u31-b13/jdk-8u31-linux-x64.tar.gz"
 	;;
 esac
 JdkLinuxDebFile=${JdkLinuxDebUrl##*/}
