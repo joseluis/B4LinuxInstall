@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# B4LinuxInstall (version 20150123) by joseLuís
+# B4LinuxInstall (version 20150127) by joseLuís
 # ----------------------------------------------------------------------
 # A bash script for installing www.b4x.com RAD tools in Linux systems
 #
@@ -135,8 +135,14 @@ AndroidSdkWineCompatUrl=http://github.com/joseluis/B4LinuxInstall/raw/master/sdk
 AndroidSdkWineCompatFile=${AndroidSdkUrl##*/}
 
 # Wine version to use
-WinePkg="wine1.6" # stable version, preferred
-#WinePkg="wine1.7" # beta version, not needed
+case ${SObits} in
+	32)
+	WinePkg="wine1.6" # stable version, preferred
+	;;
+	64)
+	WinePkg="wine1.7" # beta version, only needed in 64bit (because of dotnet)
+	;;
+esac
 
 # ORACLE JAVA
 # ----------------------------------------------------------------------
