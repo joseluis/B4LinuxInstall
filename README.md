@@ -21,6 +21,7 @@ There are plans to support more Linux distributions in the future.
 [See here usage demo video for a previous version (2014-11-22)](https://www.youtube.com/watch?v=s9ZQBiKHGJ8)
 
 ## Changelog
+	- 20150127 Updated JDK versions; install wine-1.6 stable in 32bit systems and wine-1.7 in 64bit; minor updates
 	- 20150117 new B4i install function; removed URL parameter in favor of installer file detection; minor fixes; updated comments
 	- 20150116 updated android SDK version; updated URLs
 	- 20141217 made clearer that JavaFX is only needed for B4J
