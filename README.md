@@ -1,9 +1,11 @@
 B4LinuxInstall
 ==============
 
-Install [www.b4x.com](http://www.b4x.com) RAD tools (B4J, B4A, B4i) in Ubuntu.
+Install [www.b4x.com](http://www.b4x.com) RAD tools (B4J, B4A, B4i) in Ubuntu & Mint.
 
-There are plans to support more Linux distributions in the future.
+:warning: Since I no longer use B4X I wont maintain this tool anymore. :warning:
+
+If you fork it and continue developing it please open an Issue so I can link it in this README.
 
 
 ## Instructions
