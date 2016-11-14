@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# B4LinuxInstall (version 20150127) by joseLuís
+# B4LinuxInstall (version 20150929) by joseLuís
 # ----------------------------------------------------------------------
 # A bash script for installing www.b4x.com RAD tools in Linux systems
 #
@@ -126,7 +126,7 @@ DirWorkspace=${HOME}/workspace_b4
 
 # Android SDK for Linux 32)
 
-AndroidSdkUrl=http://dl.google.com/android/android-sdk_r24.0.2-linux.tgz
+AndroidSdkUrl=http://dl.google.com/android/android-sdk_r24.4.1-linux.tgz
 AndroidSdkFile=${AndroidSdkUrl##*/}
 
 # Compatibility elements for the android SDK and Wine
@@ -140,53 +140,43 @@ case ${SObits} in
 	WinePkg="wine1.6" # stable version, preferred
 	;;
 	64)
-	WinePkg="wine1.7" # beta version, only needed in 64bit (because of dotnet)
+	WinePkg="wine1.7" # beta version, only needed in 64bit (because of dotnet) # TODO: dotnet40 prob. needs this
 	;;
 esac
 
 # ORACLE JAVA
 # ----------------------------------------------------------------------
 #
-# http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html
-# http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
+
+# Latest version. Check on:
+#   - http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html (deprecated but works)
+#   - http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html (fails installation in wine <=1.7)
+J7VER='7u79'; J7VER_B='b15'
+J8VER='8u65'; J8VER_B='b17'
 
 # JDK for Windows 32bit <UPDATE>
-
-JdkWindowsUrl=http://download.oracle.com/otn-pub/java/jdk/7u75-b13/jdk-7u75-windows-i586.exe # version 1.7
-#JdkWindowsUrl=http://download.oracle.com/otn-pub/java/jdk/8u31-b13/jdk-8u31-windows-i586.exe # version 1.8 fails installation on wine
+JdkWindowsUrl=http://download.oracle.com/otn-pub/java/jdk/${J7VER}-${J7VER_B}/jdk-${J7VER}-windows-i586.exe
+#JdkWindowsUrl=http://download.oracle.com/otn-pub/java/jdk/${J8VER}-${J8VER_B}/jdk-${J8VER}-windows-i586.exe
 JdkWindowsPack=${JdkWindowsUrl##*/}
 
 # JDK for Linux <UPDATE>
-
 case ${SObits} in
 	32)
 	# rpm
-	JdkLinuxRpmUrl="http://download.oracle.com/otn-pub/java/jdk/8u31-b13/jdk-8u31-linux-i586.rpm"
+	JdkLinuxRpmUrl="http://download.oracle.com/otn-pub/java/jdk/${J8VER}-${J8VER_B}/jdk-${J8VER}-linux-i586.rpm"
 	# tgz
-	JdkLinuxTgzUrl="http://download.oracle.com/otn-pub/java/jdk/8u31-b13/jdk-8u31-linux-i586.tar.gz"
+	JdkLinuxTgzUrl="http://download.oracle.com/otn-pub/java/jdk/${J8VER}-${J8VER_B}/jdk-${J8VER}-linux-i586.tar.gz"
 	;;
 	64)
 	# rpm
-	JdkLinuxRpmUrl="http://download.oracle.com/otn-pub/java/jdk/8u31-b13/jdk-8u31-linux-x64.rpm"
+	JdkLinuxRpmUrl="http://download.oracle.com/otn-pub/java/jdk/${J8VER}-${J8VER_B}/jdk-${J8VER}-linux-x64.rpm"
 	# tgz
-	JdkLinuxTgzUrl="http://download.oracle.com/otn-pub/java/jdk/8u31-b13/jdk-8u31-linux-x64.tar.gz"
+	JdkLinuxTgzUrl="http://download.oracle.com/otn-pub/java/jdk/${J8VER}-${J8VER_B}/jdk-${J8VER}-linux-x64.tar.gz"
 	;;
 esac
 JdkLinuxDebFile=${JdkLinuxDebUrl##*/}
 JdkLinuxRpmFile=${JdkLinuxRpmUrl##*/}
 JdkLinuxTgzFile=${JdkLinuxTgzUrl##*/}
-
-# JavaFX Scene Builder for Linux <UPDATE>
-
-case ${SObits} in
-	32)
-	JavaFxSBDebUrl=http://download.oracle.com/otn-pub/java/javafx_scenebuilder/2.0-b20/javafx_scenebuilder-2_0-linux-i586.deb
-	;;
-	64)
-	JavaFxSBDebUrl=http://download.oracle.com/otn-pub/java/javafx_scenebuilder/2.0-b20/javafx_scenebuilder-2_0-linux-x64.deb
-	;;
-esac
-JavaFxSBDebFile=${JavaFxSBDebUrl##*/}
 
 
 # 3 UTILITY FUNCTIONS
@@ -233,7 +223,7 @@ function oracle_download() {
 }
 
 function wget_download() {
-	wget --progress=bar:force -P ${DirTmp} ${1} 2>&1 | wgetFilter
+	wget -c --progress=bar:force -P ${DirTmp} ${1} 2>&1 | wgetFilter
 }
 
 
@@ -274,6 +264,7 @@ function override_app_dlls() {
 
 # 5 SETUP FOLDERS
 # ######################################################################
+
 DirTmp=${DirWorkspace}/temp
 DirTools=${DirWorkspace}/tools
 DirWine=${DirWorkspace}/wine_b4
@@ -342,40 +333,8 @@ else
 fi
 
 
-# 7 JAVA FX SCENE BUILDER INSTALLATION (LINUX)
-# ######################################################################
 
-# <ORACLE>
-
-echo -e "\n${txtSECT}Installation of Java FX Scenebuilder for Linux..."
-echo "--------------------------------------------${txtRST}"
-if ! package_exists scenebuilder; then # TODO: make a deeper check
-
-# Package to download, depending on architecture and package manager
-		
-	read -p "${txtQUES}You need Oracle Java FX Scenebuilder only for B4J. Do you want to install it now? (y/n) ${txtRST}" yn
-
-	if [ "${yn}" = "y" ]; then
-			
-		echo "${txtINFO}We are going to execute the following commands:${txtRST}"
-		
-		# <DPKG>
-		echo "${txtCODE}    wget ${JavaFxSBDebUrl}${txtRST} # Simplified command"
-		echo "${txtCODE}    sudo dpkg -i ${JavaFxSBDebFile}${txtRST}"
-		
-		read -p "${txtQUES}Continue? (y/n) ${txtRST}"
-		if [ "${yn}" = "y" ]; then
-			oracle_download ${JavaFxSBDebUrl}
-			sudo dpkg -i ${DirTmp}/${JavaFxSBDebFile} # TODO: create function package_install
-		fi
-	fi
-	
-else
-	echo "${txtPASS}You seem to have Java FX SceneBuilder already installed.${txtRST}"
-fi
-
-
-# 8 ANDROID SDK INSTALLATION (LINUX)
+# 7 ANDROID SDK INSTALLATION (LINUX)
 # ######################################################################
 
 # The only components that needs to be installed are:
@@ -387,10 +346,13 @@ echo "--------------------------------------------${txtRST}"
 
 # Android SDK Installation
 if ! [ -d "${DirWorkspace}/android-sdk-linux/" ]; then
-	read -p "${txtQUES}Do you want to install Android SDK? (y/n) ${txtRST}" yn
+	read -p "${txtQUES}Do you want to install Android SDK (>300MB download)? (y/n) ${txtRST}" yn
 	if [ "${yn}" = "y" ]; then
 		wget_download ${AndroidSdkUrl};
-		tar -zxvf ${DirTmp}/${AndroidSdkFile} -C ${DirWorkspace}
+		echo "${txtINFO}Uncompressing downloaded file \"${AndroidSdkFile}\". . .${txtRST}"
+		tar -zxf ${DirTmp}/${AndroidSdkFile} -C ${DirWorkspace}
+
+		echo "${txtINFO}Install from the Android SDK Manager GUI only the necessary components:\nAndroid SDK: Tools, Platform-tools & Build-tools; Android >= 6.0: SDK Platform & Intel x86 System Image. . .${txtRST}"
 		${DirWorkspace}/android-sdk-linux/tools/android 2>/dev/null
 	fi
 
@@ -409,7 +371,8 @@ if [ -d "${DirWorkspace}/android-sdk-linux/tools/" ] && [ ${yn} == "y" ]; then
 		echo "echo OFF" > ${DirWorkspace}/android-sdk-linux/tools/android.bat
 		echo "start /unix ${DirWorkspace}/android-sdk-linux/tools/android avd" >> ${DirWorkspace}/android-sdk-linux/tools/android.bat
 		wget_download ${AndroidSdkWineCompatUrl};
-		tar -xzvf ${DirTmp}/${AndroidSdkWineCompatFile} -C ${DirWorkspace}/android-sdk-linux
+		echo "${txtINFO}Uncompressing \"$\". . .${txtRST}"
+		tar -xzf ${DirTmp}/${AndroidSdkWineCompatFile} -C ${DirWorkspace}/android-sdk-linux
 	else
 		echo "${txtPASS}Compatibility elements for Android SDK with Wine are already installed${txtRST}"
 	fi
@@ -417,7 +380,7 @@ fi
 
 
 
-# 9 WINE INSTALLATION (LINUX)
+# 8 WINE INSTALLATION (LINUX)
 # ######################################################################
 
 echo -e "\n${txtSECT}Installation of Wine for Linux..."
@@ -461,14 +424,14 @@ if ! [ -d "${DirWine}" ]; then
 	
 	echo "${txtINFO}Initializing Wine's environment. . .${txtRST}"
 	WINEARCH=win32 WINEPREFIX=${DirWine} wine do_not_exists 2>/dev/null
-	echo "${txtINFO}Installing .NET 2.0. . .${txtRST}"
-	WINEARCH=win32 WINEPREFIX=${DirWine} winetricks dotnet20 2>/dev/null
+	echo "${txtINFO}Installing .NET 4.0. . .${txtRST}"
+	WINEARCH=win32 WINEPREFIX=${DirWine} winetricks dotnet40 corefonts 2>/dev/null
 else
-	echo "${txtPASS}Environment for Wine 32 bits width dotnet20 is already installed${txtRST}"
+	echo "${txtPASS}Environment for Wine 32 bits width dotnet40 is already installed${txtRST}"
 fi
 
 
-# 10 ORACLE JAVA JDK INSTALLATION (WINE)
+# 9 ORACLE JAVA JDK INSTALLATION (WINE)
 # ######################################################################
 
 # The only component that needs to be installed is the Development Tools
@@ -491,7 +454,7 @@ else
 fi
 
 
-# 11 B4A INSTALLATION (WINE)
+# 10 B4A INSTALLATION (WINE)
 # ######################################################################
 
 echo -e "\n${txtSECT}Installation of B4A for Windows 32bit..."
@@ -535,7 +498,7 @@ if [ "${yn}" == "y" ]; then
 fi
 
 
-# 12 B4J INSTALLATION (WINE)
+# 11 B4J INSTALLATION (WINE)
 # ######################################################################
 
 echo -e "\n${txtSECT}Installation of B4J for Windows 32bit..."
@@ -549,7 +512,11 @@ else
 fi
 
 if [ "${yn}" == "y" ]; then
-	wget_download ${b4jURL}
+	# wget_download ${b4jURL} # TEMP
+	b4jFile=/mnt/nube/Dropbox/dev/B4LinuxInstall/tmp/b4j-beta-new-ide.exe
+	echo "WINEARCH=win32 WINEPREFIX=${DirWine} wine ${DirTmp}/${b4jFile} 2>/dev/null"
+	exit
+
 	WINEARCH=win32 WINEPREFIX=${DirWine} wine ${DirTmp}/${b4jFile} 2>/dev/null
 	override_app_dlls B4J.exe gdiplus native
 
@@ -591,7 +558,7 @@ if [ "${yn}" == "y" ]; then
 fi
 
 
-# 13 B4i INSTALLATION (WINE)
+# 12 B3i INSTALLATION (WINE)
 # ######################################################################
 
 echo -e "\n${txtSECT}Installation of B4i for Windows 32bit..."
@@ -636,7 +603,7 @@ if [ "${yn}" == "y" ]; then
 fi
 
 
-# 14 CLEANUP & EXIT
+# 13 CLEANUP & EXIT
 # ######################################################################
 
 # TODO: Make this an option in the menu. Show size.
